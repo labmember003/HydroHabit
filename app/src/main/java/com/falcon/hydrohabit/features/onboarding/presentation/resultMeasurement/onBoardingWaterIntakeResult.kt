@@ -57,11 +57,6 @@ fun OnBoardingWaterIntakeResultScreen(
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.waterintakeresult),
-                contentDescription = "onBoarding Getting Weight and Height"
-            )
-            Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "Your Water Intake",
                 style = TextStyle(

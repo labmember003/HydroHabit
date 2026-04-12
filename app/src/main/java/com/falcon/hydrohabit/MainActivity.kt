@@ -11,9 +11,11 @@ import androidx.compose.ui.graphics.Color
 import com.falcon.hydrohabit.navigation.navMap.NavScreen
 import com.falcon.hydrohabit.ui.theme.HydroHabitTheme
 import org.koin.androidx.compose.KoinAndroidContext
+import org.koin.core.annotation.KoinExperimentalAPI
 
 class MainActivity : ComponentActivity() {
 
+    @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

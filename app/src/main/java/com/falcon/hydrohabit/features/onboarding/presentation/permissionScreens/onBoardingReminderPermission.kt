@@ -106,12 +106,6 @@ fun OnboardingReminder(
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.bg_sip_to_scroll),
-                contentDescription = "Overlay permission background",
-                modifier = Modifier.size(180.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "Scroll to Sip, Sip to Scroll",
                 style = TextStyle(

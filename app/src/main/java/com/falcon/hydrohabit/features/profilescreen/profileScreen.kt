@@ -22,11 +22,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -87,12 +91,13 @@ fun getSoundResId(index: Int): Int? {
     }
 }
 
-private fun formatHour(hour: Int): String {
+private fun formatTime(hour: Int, minute: Int = 0): String {
+    val min = "%02d".format(minute)
     return when {
-        hour == 0 -> "12:00 AM"
-        hour < 12 -> "$hour:00 AM"
-        hour == 12 -> "12:00 PM"
-        else -> "${hour - 12}:00 PM"
+        hour == 0 -> "12:$min AM"
+        hour < 12 -> "$hour:$min AM"
+        hour == 12 -> "12:$min PM"
+        else -> "${hour - 12}:$min PM"
     }
 }
 
@@ -102,8 +107,8 @@ fun SettingsScreen(
     profileData: profileData,
     getNotificationChange: (Boolean) -> Unit,
     getIntervalChange: (Int) -> Unit,
-    getWakeUpHourChange: (Int) -> Unit,
-    getBedHourChange: (Int) -> Unit,
+    getWakeUpHourChange: (Int, Int) -> Unit,
+    getBedHourChange: (Int, Int) -> Unit,
     getSoundChange: (Int) -> Unit,
 ) {
     val context = LocalContext.current
@@ -192,7 +197,7 @@ fun SettingsScreen(
         // Wake Up Time
         SettingsRow(
             title = "Wake Up Time",
-            value = formatHour(profileData.wakeUpHour),
+            value = formatTime(profileData.wakeUpHour, profileData.wakeUpMinute),
             onClick = { showWakeUpDialog = true }
         )
 
@@ -201,7 +206,7 @@ fun SettingsScreen(
         // Bed Time
         SettingsRow(
             title = "Bed Time",
-            value = formatHour(profileData.bedHour),
+            value = formatTime(profileData.bedHour, profileData.bedMinute),
             onClick = { showBedTimeDialog = true }
         )
 
@@ -217,7 +222,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Reminders will be sent every ${intervalOptions[profileData.selectedIntervalIndex]} between ${formatHour(profileData.wakeUpHour)} and ${formatHour(profileData.bedHour)}",
+            text = "Reminders will be sent every ${intervalOptions[profileData.selectedIntervalIndex]} between ${formatTime(profileData.wakeUpHour, profileData.wakeUpMinute)} and ${formatTime(profileData.bedHour, profileData.bedMinute)}",
             style = TextStyle(
                 fontSize = 12.sp,
                 fontFamily = fontFamily,
@@ -280,16 +285,12 @@ fun SettingsScreen(
 
     // Wake Up Time Picker Dialog
     if (showWakeUpDialog) {
-        val wakeOptions = (4..11).map { formatHour(it) }
-        val wakeHours = (4..11).toList()
-        val currentIdx = wakeHours.indexOf(profileData.wakeUpHour).coerceAtLeast(0)
-        OptionPickerDialog(
+        TimePickerDialog(
             title = "Wake Up Time",
-            subtitle = "When do you usually wake up?",
-            options = wakeOptions,
-            currentIndex = currentIdx,
-            onSelect = { index ->
-                getWakeUpHourChange(wakeHours[index])
+            initialHour = profileData.wakeUpHour,
+            initialMinute = profileData.wakeUpMinute,
+            onConfirm = { hour, minute ->
+                getWakeUpHourChange(hour, minute)
                 showWakeUpDialog = false
             },
             onDismiss = { showWakeUpDialog = false }
@@ -298,16 +299,12 @@ fun SettingsScreen(
 
     // Bed Time Picker Dialog
     if (showBedTimeDialog) {
-        val bedOptions = (20..24).map { formatHour(if (it == 24) 0 else it) }
-        val bedHours = (20..24).map { if (it == 24) 0 else it }
-        val currentIdx = bedHours.indexOf(profileData.bedHour).coerceAtLeast(0)
-        OptionPickerDialog(
+        TimePickerDialog(
             title = "Bed Time",
-            subtitle = "When do you usually go to bed?",
-            options = bedOptions,
-            currentIndex = currentIdx,
-            onSelect = { index ->
-                getBedHourChange(bedHours[index])
+            initialHour = profileData.bedHour,
+            initialMinute = profileData.bedMinute,
+            onConfirm = { hour, minute ->
+                getBedHourChange(hour, minute)
                 showBedTimeDialog = false
             },
             onDismiss = { showBedTimeDialog = false }
@@ -639,6 +636,91 @@ private fun SoundPickerDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimePickerDialog(
+    title: String,
+    initialHour: Int,
+    initialMinute: Int,
+    onConfirm: (Int, Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialHour,
+        initialMinute = initialMinute,
+        is24Hour = false
+    )
+
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontFamily = fontFamilyBold,
+                    fontWeight = FontWeight(600),
+                    color = primaryBlack,
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            TimePicker(
+                state = timePickerState,
+                colors = TimePickerDefaults.colors(
+                    clockDialColor = Color(0xFFF2F2F7),
+                    clockDialSelectedContentColor = Color.White,
+                    clockDialUnselectedContentColor = primaryBlack,
+                    selectorColor = waterColor,
+                    containerColor = Color.White,
+                    periodSelectorBorderColor = Color(0xFFD1D1D6),
+                    periodSelectorSelectedContainerColor = waterColor.copy(alpha = 0.15f),
+                    periodSelectorUnselectedContainerColor = Color.White,
+                    periodSelectorSelectedContentColor = waterColor,
+                    periodSelectorUnselectedContentColor = Color(0xFF8E8E93),
+                    timeSelectorSelectedContainerColor = waterColor.copy(alpha = 0.15f),
+                    timeSelectorUnselectedContainerColor = Color(0xFFF2F2F7),
+                    timeSelectorSelectedContentColor = waterColor,
+                    timeSelectorUnselectedContentColor = primaryBlack,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(
+                        text = "Cancel",
+                        color = Color(0xFF8E8E93),
+                        fontFamily = fontFamily,
+                        fontSize = 14.sp
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(onClick = {
+                    onConfirm(timePickerState.hour, timePickerState.minute)
+                }) {
+                    Text(
+                        text = "Done",
+                        color = waterColor,
+                        fontFamily = fontFamilyBold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
 private fun sendBugReportEmail(context: Context) {
     val intent = Intent(Intent.ACTION_SENDTO).apply {
         data = "mailto:".toUri()
@@ -675,8 +757,8 @@ fun PreviewSettingsScreen() {
         ),
         getNotificationChange = {},
         getIntervalChange = {},
-        getWakeUpHourChange = {},
-        getBedHourChange = {},
+        getWakeUpHourChange = { _, _ -> },
+        getBedHourChange = { _, _ -> },
         getSoundChange = {}
     )
 }

@@ -14,19 +14,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.falcon.hydrohabit.features.onboarding.presentation.activityMeasurement.OnBoardingActiveScreen
-import com.falcon.hydrohabit.features.onboarding.presentation.resultMeasurement.OnBoardingWaterIntakeResultScreen
 import com.falcon.hydrohabit.features.onboarding.presentation.bodyMeasurement.OnBoardingBodyMeasurementsScreen
 import com.falcon.hydrohabit.features.onboarding.presentation.permissionScreens.OnboardingNotifications
-import com.falcon.hydrohabit.features.onboarding.presentation.premium.PremiumScreen
+import com.falcon.hydrohabit.features.onboarding.presentation.resultMeasurement.OnBoardingWaterIntakeResultScreen
+import com.falcon.hydrohabit.features.onboarding.presentation.sleepSchedule.OnBoardingSleepScheduleScreen
+import com.falcon.hydrohabit.features.onboarding.utils.BodyMeasurementData
 import com.falcon.hydrohabit.features.onboarding.utils.OnboardingLoadingScreen
 import com.falcon.hydrohabit.features.onboarding.utils.activityMeasurementData
-import com.falcon.hydrohabit.features.onboarding.utils.BodyMeasurementData
-import com.falcon.hydrohabit.features.onboarding.utils.premiumData
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
+import com.falcon.hydrohabit.navigation.navUtils.OnboardingNavScreens
 import com.falcon.hydrohabit.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.ui.theme.waterColorBackground
-import com.falcon.hydrohabit.ui.theme.waterColorMeter
-import com.falcon.hydrohabit.navigation.navUtils.OnboardingNavScreens
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -127,7 +125,7 @@ fun OnboardingNavHostingScreen(
                 ),
                 getNavigate = {
                     onboardingViewModel.updateUserSettings(false)
-                    navController.navigate(OnboardingNavScreens.NotificationPermissionScreen.route)
+                    navController.navigate(OnboardingNavScreens.SleepScheduleScreen.route)
                 },
                 onWaterIntake = "${onboardingViewModel.onWaterAmount} ml",
                 getBack = {
@@ -136,6 +134,30 @@ fun OnboardingNavHostingScreen(
                         OnboardingNavScreens.ActivityIntakeScreen.route,
                         false
                     )
+                }
+            )
+        }
+        composable(route = OnboardingNavScreens.SleepScheduleScreen.route) {
+            OnBoardingSleepScheduleScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            start = Offset(Float.POSITIVE_INFINITY * 0.4f, 0f),
+                            end = Offset(0f, Float.POSITIVE_INFINITY),
+                            colors = mutableListOf(waterColorBackground, backgroundColor2)
+                        )
+                    ),
+                selectedWakeUpHour = onboardingViewModel.wakeUpHour,
+                selectedBedHour = onboardingViewModel.bedHour,
+                getWakeUpChange = { onboardingViewModel.updateWakeUpHour(it) },
+                getBedTimeChange = { onboardingViewModel.updateBedHour(it) },
+                getNavigate = {
+                    onboardingViewModel.saveSleepSchedule()
+                    navController.navigate(OnboardingNavScreens.NotificationPermissionScreen.route)
+                },
+                getBack = {
+                    navController.navigateUp()
                 }
             )
         }

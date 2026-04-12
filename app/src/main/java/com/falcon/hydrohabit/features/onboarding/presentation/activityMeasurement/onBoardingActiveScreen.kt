@@ -73,11 +73,6 @@ fun OnBoardingActiveScreen(
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    imageVector = ImageVector.vectorResource(R.drawable.acitivitymeasurement),
-                    contentDescription = "onBoarding Getting Weight and Height"
-                )
-                Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "Calculate Amount",
                     style = TextStyle(

@@ -2,8 +2,10 @@ package com.falcon.hydrohabit.features.profilescreen.utils
 
 data class profileData(
     val onNotificationChange: Boolean,
-    val selectedIntervalIndex: Int = 1, // default: 1 hour (health-recommended)
-    val wakeUpHour: Int = 8,  // default: 8 AM
-    val bedHour: Int = 22,    // default: 10 PM
-    val selectedSoundIndex: Int = 0, // default: first custom sound
+    val selectedIntervalIndex: Int = 1,
+    val wakeUpHour: Int = 8,
+    val wakeUpMinute: Int = 0,
+    val bedHour: Int = 22,
+    val bedMinute: Int = 0,
+    val selectedSoundIndex: Int = 0,
 )

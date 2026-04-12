@@ -57,6 +57,26 @@ class OnboardingViewModel(private val onboardingRepo: OnboardingRepository, priv
     var onNotificationPermissionDenied by mutableStateOf<Boolean?>(null)
         private set
 
+    var wakeUpHour by mutableIntStateOf(8)
+        private set
+    var bedHour by mutableIntStateOf(22)
+        private set
+
+    fun updateWakeUpHour(hour: Int) {
+        wakeUpHour = hour
+    }
+
+    fun updateBedHour(hour: Int) {
+        bedHour = hour
+    }
+
+    fun saveSleepSchedule() {
+        sharedPreferences.edit {
+            putInt("wake_up_hour", wakeUpHour)
+            putInt("bed_hour", bedHour)
+        }
+    }
+
 
     init {
         viewModelScope.launch {

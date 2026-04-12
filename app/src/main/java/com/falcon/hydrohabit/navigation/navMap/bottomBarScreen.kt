@@ -43,7 +43,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +74,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.falcon.hydrohabit.R
+import com.falcon.hydrohabit.alarmSchedular.AlarmScheduler
 import com.falcon.hydrohabit.features.homescreen.HomeScreen
 import com.falcon.hydrohabit.features.profilescreen.SettingsScreen
 import com.falcon.hydrohabit.features.profilescreen.utils.profileData
@@ -84,8 +84,8 @@ import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.navigation.navUtils.BottomNavScreens
-import com.falcon.hydrohabit.features.calendarscreen.utils.WaterGoals
 import kotlinx.coroutines.delay
+import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,25 +96,17 @@ fun BottomBarHostingScreen(
     getWaterTrackingResourceAmount: (Int) -> Unit,
     onTotalWaterTrackingResourceAmount: Int,
     getUpdateTotalWaterTrackingAmount: (Int) -> Unit,
-    getAddWater: () -> Unit,
     onUserName: String,
     getReward: (Boolean?) -> Unit,
     onReward: Boolean?,
     onWaterMeterResourceAmount: Int,
     onStreak: String,
-    getStreak: () -> Unit, onProgress: String,
+    onProgress: String,
     onTime: String,
     getGreeting: () -> Unit,
     isEndless: Boolean = true,
     items: List<Int>,
     streakImages: List<Int>,
-    onMonth: String,
-    calendarList: MutableList<List<Color>>,
-    onWaterGoals: List<WaterGoals>,
-    getSelected: (Int) -> Unit,
-    getProfileClick: () -> Unit,
-    imgModifier: Modifier,
-    onAvgIntake: String, onHeight: String, onBestStreak: String, onWeight: String
 ) {
     var onAdd by remember {
         mutableStateOf(false)
@@ -136,7 +128,7 @@ fun BottomBarHostingScreen(
     }
     val context = navController.context
     val prefs = remember { context.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE) }
-    val alarmScheduler = remember { com.falcon.hydrohabit.alarmSchedular.AlarmScheduler(context) }
+    val alarmScheduler = remember { AlarmScheduler(context) }
     var notificationsEnabled by remember {
         mutableStateOf(prefs.getBoolean("notifications_enabled", false))
     }
@@ -146,8 +138,14 @@ fun BottomBarHostingScreen(
     var wakeUpHour by remember {
         mutableIntStateOf(prefs.getInt("wake_up_hour", 8))
     }
+    var wakeUpMinute by remember {
+        mutableIntStateOf(prefs.getInt("wake_up_minute", 0))
+    }
     var bedHour by remember {
         mutableIntStateOf(prefs.getInt("bed_hour", 22))
+    }
+    var bedMinute by remember {
+        mutableIntStateOf(prefs.getInt("bed_minute", 0))
     }
     var selectedSoundIndex by remember {
         mutableIntStateOf(prefs.getInt("notification_sound_index", 0))
@@ -162,10 +160,8 @@ fun BottomBarHostingScreen(
             alarmScheduler.cancelAll()
         }
     }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true);
     val navItems = mutableListOf(
         BottomNavScreens.HomeScreen,
-//        BottomNavScreens.CalendarScreen,
         BottomNavScreens.SettingsScreen
     )
     val listState = rememberLazyListState()
@@ -185,27 +181,6 @@ fun BottomBarHostingScreen(
         delay(3000)
         onTitleChage = false
     }
-//    LaunchedEffect(key1 = listState) {
-//        snapshotFlow{
-//            listState.firstVisibleItemIndex
-//        }.collect{
-//            if (it>items.size-1){
-//                println("Selected Index => Greater than Item list")
-//                selected = (it%(items.size-1))
-//            }else{
-//                println("Selected Index => Smaller than Item list")
-//                selected = it+1
-//                if(selected==6){
-//                    selected =0
-//                }
-//
-//            }
-//            println("Selected Index => ${selected}")
-//
-//        }
-//
-//
-//    }
 
 
     Scaffold(
@@ -214,18 +189,13 @@ fun BottomBarHostingScreen(
             if (isOnHome) {
                 TopBarLayout(
                     onTime = onTime,
-                    getNotificationClick = {},
-                    getPorfileClick = {
-                        getProfileClick()
-                    },
                     onUserName = onUserName,
                     onTitleChange = onTitleChage,
-                    imgModifier = imgModifier
                 )
             }
         },
         bottomBar = {
-            Log.d("SCROLL", showBottomBar.toString());
+            Log.d("SCROLL", showBottomBar.toString())
             AnimatedVisibility(visible = !showBottomBar, enter = fadeIn(), exit = fadeOut()) {
                 BottomBarLayout(navController, navScreens = navItems, getHome = {
                     onHome = it
@@ -338,67 +308,42 @@ fun BottomBarHostingScreen(
                         )
                 )
             }
-//            composable(route = BottomNavScreens.CalendarScreen.route) {
-//                CalendarScreen(
-//                    onMonth = onMonth,
-//                    listOfTodos = onWaterGoals,
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(
-//                            Brush.linearGradient(
-//                                start = Offset(Float.POSITIVE_INFINITY, 0f),
-//                                end = Offset(0f, Float.POSITIVE_INFINITY),
-//                                colors = mutableListOf(backgroundColor1, backgroundColor2)
-//                            )
-//                        ),
-//                    onPad = padding,
-//                    caledarList = calendarList,
-//                    getSelected = {
-//                        getSelected(it)
-//                    },
-//                    onHeight = onHeight,
-//                    onBestStreak = onBestStreak,
-//                    onWeight = onWeight,
-//                    onAvgIntake = onAvgIntake,
-//                    intakeAmount = if (onWaterTrackingResourceAmount >= onTotalWaterTrackingResourceAmount) {
-//                        onTotalWaterTrackingResourceAmount.toString()
-//                    } else {
-//                        onWaterTrackingResourceAmount.toString()
-//                    }
-//                )
-//            }
             composable(route = BottomNavScreens.SettingsScreen.route) {
                 SettingsScreen(
                     profileData = profileData(
                         onNotificationChange = notificationsEnabled,
                         selectedIntervalIndex = selectedIntervalIndex,
                         wakeUpHour = wakeUpHour,
+                        wakeUpMinute = wakeUpMinute,
                         bedHour = bedHour,
+                        bedMinute = bedMinute,
                         selectedSoundIndex = selectedSoundIndex
                     ),
                     getNotificationChange = {
                         notificationsEnabled = it
-                        prefs.edit().putBoolean("notifications_enabled", it).apply()
+                        prefs.edit { putBoolean("notifications_enabled", it) }
                         rescheduleNotifications()
                     },
                     getIntervalChange = {
                         selectedIntervalIndex = it
-                        prefs.edit().putInt("notification_interval_index", it).apply()
+                        prefs.edit { putInt("notification_interval_index", it) }
                         rescheduleNotifications()
                     },
-                    getWakeUpHourChange = {
-                        wakeUpHour = it
-                        prefs.edit().putInt("wake_up_hour", it).apply()
+                    getWakeUpHourChange = { h, m ->
+                        wakeUpHour = h
+                        wakeUpMinute = m
+                        prefs.edit { putInt("wake_up_hour", h).putInt("wake_up_minute", m) }
                         rescheduleNotifications()
                     },
-                    getBedHourChange = {
-                        bedHour = it
-                        prefs.edit().putInt("bed_hour", it).apply()
+                    getBedHourChange = { h, m ->
+                        bedHour = h
+                        bedMinute = m
+                        prefs.edit { putInt("bed_hour", h).putInt("bed_minute", m) }
                         rescheduleNotifications()
                     },
                     getSoundChange = {
                         selectedSoundIndex = it
-                        prefs.edit().putInt("notification_sound_index", it).apply()
+                        prefs.edit { putInt("notification_sound_index", it) }
                     },
                     modifier = Modifier
                         .fillMaxSize()
@@ -418,14 +363,6 @@ fun BottomBarHostingScreen(
         }
     }
     if (onWaterAddSheet) {
-//        ModalBottomSheet(
-//            containerColor = backgroundColor1,
-//            sheetState = sheetState,
-//            onDismissRequest = { onWaterAddSheet = !onWaterAddSheet }, modifier = Modifier
-//                .fillMaxWidth()
-//                .fillMaxHeight(0.65f)
-//                .padding(10.dp)
-//        ) {
         Dialog(properties = DialogProperties(
             usePlatformDefaultWidth = true,
             decorFitsSystemWindows = true
@@ -585,11 +522,8 @@ fun WaterCarouselSheet(
 @Composable
 fun TopBarLayout(
     onTime: String,
-    getNotificationClick: () -> Unit,
-    getPorfileClick: () -> Unit,
     onTitleChange: Boolean,
     onUserName: String,
-    imgModifier: Modifier
 ) {
 
     TopAppBar(
@@ -598,7 +532,7 @@ fun TopBarLayout(
                 visible = !onTitleChange, enter = fadeIn(), exit = fadeOut()
             ) {
                 Text(
-                    text = "${onTime} \uD83D\uDC4B",
+                    text = "$onTime \uD83D\uDC4B",
                     modifier = Modifier
                         .fillMaxWidth(),
                     style = TextStyle(
@@ -773,29 +707,15 @@ fun PreviewBottomBarHostingScreen() {
         onTotalWaterTrackingResourceAmount = 300,
         onUserName = "Hitesh",
         onWaterTrackingResourceAmount = 300,
-        getAddWater = {},
         getReward = {},
         getWaterTrackingResourceAmount = {},
         onWaterMeterResourceAmount = 20,
         onStreak = "6",
         onProgress = "You are half way through keep it going",
-        getStreak = {},
         onTime = "Goodmorning",
         getGreeting = {},
         items = mutableListOf(50, 100, 200, 300, 400, 500),
         getUpdateTotalWaterTrackingAmount = {},
         streakImages = mutableListOf(R.drawable.day2, R.drawable.day1),
-        onMonth = "",
-        onWaterGoals = mutableListOf(),
-        calendarList = mutableListOf(
-            mutableListOf(Color.Black)
-        ),
-        getSelected = {},
-        getProfileClick = {},
-        imgModifier = Modifier,
-        onAvgIntake = "1700ml",
-        onWeight = "72",
-        onHeight = "172",
-        onBestStreak = "10"
     )
 }

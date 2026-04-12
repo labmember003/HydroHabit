@@ -1,13 +1,8 @@
 package com.falcon.hydrohabit.features.onboarding.presentation.bodyMeasurement
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,8 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -38,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.falcon.hydrohabit.R
 import com.falcon.hydrohabit.features.onboarding.utils.BodyMeasurementData
 import com.falcon.hydrohabit.features.onboarding.utils.OnboardingIndicator
 import com.falcon.hydrohabit.features.onboarding.utils.SingleButton
@@ -46,13 +38,10 @@ import com.falcon.hydrohabit.features.onboarding.utils.TextFieldCustom
 import com.falcon.hydrohabit.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.ui.theme.fontFamily
 import com.falcon.hydrohabit.ui.theme.fontFamilyLight
-import com.falcon.hydrohabit.ui.theme.fontFamilySemiBold
+import com.falcon.hydrohabit.ui.theme.onboardingBoxColor
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.primaryBlackLight
-import com.falcon.hydrohabit.ui.theme.onboardingBoxColor
-import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.ui.theme.waterColorBackground
-import com.falcon.hydrohabit.ui.theme.waterColorMeter
 
 @Composable
 fun OnBoardingBodyMeasurementsScreen(
@@ -80,11 +69,6 @@ fun OnBoardingBodyMeasurementsScreen(
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    imageVector = ImageVector.vectorResource(R.drawable.drinkwater),
-                    contentDescription = "onBoarding Getting Weight and Height"
-                )
-                Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "Right Hydration",
                     style = TextStyle(

@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.falcon.hydrohabit.features.calendarscreen.CalendarViewModel
 import com.falcon.hydrohabit.features.homescreen.HomeViewModel
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
 import com.falcon.hydrohabit.features.splash_screen.SplashScreen
@@ -31,7 +30,6 @@ import org.koin.compose.koinInject
 fun NavScreen(
     OnboardingViewModel: OnboardingViewModel = koinViewModel(),
     homeViewModel: HomeViewModel = koinViewModel(),
-    caledarViewModel: CalendarViewModel = koinViewModel(),
     sharedPreferences: SharedPreferences = koinInject()
 ) {
     val TAG = "NavScreen"
@@ -76,29 +74,15 @@ fun NavScreen(
                         homeViewModel.DismissReward(it)
                     }
                 },
-                getAddWater = {},
                 onWaterMeterResourceAmount = homeViewModel.waterPercent,
                 onProgress = homeViewModel.onProgress,
                 onStreak = homeViewModel._streak.streak.toString(),
-                getStreak = {},
                 onTime = homeViewModel.onTime,
                 getGreeting = {
                     homeViewModel.getGreeting()
                 },
                 items = mutableListOf(50, 100, 200, 300, 400, 500),
                 streakImages = homeViewModel.perks,
-                onMonth = caledarViewModel.onMonth,
-                onWaterGoals = caledarViewModel.onWaterGoals,
-                calendarList = caledarViewModel.calendarList,
-                getSelected = {
-                    caledarViewModel.updateWaterGoals(it)
-                },
-                getProfileClick = {},
-                imgModifier = Modifier,
-                onAvgIntake = caledarViewModel.avgWaterIntake,
-                onWeight = caledarViewModel.weight,
-                onBestStreak = caledarViewModel.bestStreak.toString(),
-                onHeight = caledarViewModel.height
             )
         }
         composable(route = NavScreens.OnboardingNavHostingScreen.route) {
