@@ -3,7 +3,5 @@ Feature:
 - Calculate Water according to height and weight
 - Water tracking widget
 - Water tracking calendar
-- Backup with Backend
-- Login and Sign up flow
 - Streaks and perks
 - Water tracking

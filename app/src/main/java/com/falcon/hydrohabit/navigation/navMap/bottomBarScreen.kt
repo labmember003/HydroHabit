@@ -134,8 +134,30 @@ fun BottomBarHostingScreen(
     var showBottomBar by remember {
         mutableStateOf(false)
     }
+    val context = navController.context
+    val prefs = remember { context.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE) }
+    val alarmScheduler = remember { com.falcon.hydrohabit.alarmSchedular.AlarmScheduler(context) }
     var notificationsEnabled by remember {
-        mutableStateOf(false)
+        mutableStateOf(prefs.getBoolean("notifications_enabled", false))
+    }
+    var selectedIntervalIndex by remember {
+        mutableIntStateOf(prefs.getInt("notification_interval_index", 1))
+    }
+    var wakeUpHour by remember {
+        mutableIntStateOf(prefs.getInt("wake_up_hour", 8))
+    }
+    var bedHour by remember {
+        mutableIntStateOf(prefs.getInt("bed_hour", 22))
+    }
+
+    // Helper to schedule or cancel notifications based on current settings
+    fun rescheduleNotifications() {
+        if (notificationsEnabled) {
+            val intervalMinutes = com.falcon.hydrohabit.features.profilescreen.intervalMinutesMap[selectedIntervalIndex]
+            alarmScheduler.scheduleRepeating(intervalMinutes, wakeUpHour, bedHour)
+        } else {
+            alarmScheduler.cancelAll()
+        }
     }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true);
     val navItems = mutableListOf(
@@ -345,10 +367,31 @@ fun BottomBarHostingScreen(
             composable(route = BottomNavScreens.SettingsScreen.route) {
                 SettingsScreen(
                     profileData = profileData(
-                        onNotificationChange = notificationsEnabled
+                        onNotificationChange = notificationsEnabled,
+                        selectedIntervalIndex = selectedIntervalIndex,
+                        wakeUpHour = wakeUpHour,
+                        bedHour = bedHour
                     ),
-                    getNotificationChange = { notificationsEnabled = it },
-                    getNotificationIntervals = { /*TODO*/ },
+                    getNotificationChange = {
+                        notificationsEnabled = it
+                        prefs.edit().putBoolean("notifications_enabled", it).apply()
+                        rescheduleNotifications()
+                    },
+                    getIntervalChange = {
+                        selectedIntervalIndex = it
+                        prefs.edit().putInt("notification_interval_index", it).apply()
+                        rescheduleNotifications()
+                    },
+                    getWakeUpHourChange = {
+                        wakeUpHour = it
+                        prefs.edit().putInt("wake_up_hour", it).apply()
+                        rescheduleNotifications()
+                    },
+                    getBedHourChange = {
+                        bedHour = it
+                        prefs.edit().putInt("bed_hour", it).apply()
+                        rescheduleNotifications()
+                    },
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
