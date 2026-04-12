@@ -62,7 +62,6 @@ fun NavScreen(
                         homeViewModel.totalWaterAmount.toString()
                     )
                 },
-                onUserName = OnboardingViewModel.onNameValue,
                 onWaterTrackingResourceAmount = homeViewModel.usedWaterAmount,
                 onTotalWaterTrackingResourceAmount = homeViewModel.totalWaterAmount,
                 onReward = homeViewModel.rewardDialog,

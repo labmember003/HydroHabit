@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,7 +42,6 @@ import com.falcon.hydrohabit.ui.theme.fontFamilyBold
 import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.primaryBlackLight
-import com.falcon.hydrohabit.ui.theme.onboardingBoxColor
 import com.falcon.hydrohabit.ui.theme.waterColor
 
 private fun formatTime(hour: Int, minute: Int = 0): String {

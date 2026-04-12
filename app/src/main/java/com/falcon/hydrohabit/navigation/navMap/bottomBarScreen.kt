@@ -84,7 +84,6 @@ import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.navigation.navUtils.BottomNavScreens
-import kotlinx.coroutines.delay
 import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,7 +95,6 @@ fun BottomBarHostingScreen(
     getWaterTrackingResourceAmount: (Int) -> Unit,
     onTotalWaterTrackingResourceAmount: Int,
     getUpdateTotalWaterTrackingAmount: (Int) -> Unit,
-    onUserName: String,
     getReward: (Boolean?) -> Unit,
     onReward: Boolean?,
     onWaterMeterResourceAmount: Int,
@@ -117,9 +115,7 @@ fun BottomBarHostingScreen(
     var onHome by remember {
         mutableStateOf(true)
     }
-    var onTitleChage by remember {
-        mutableStateOf(false)
-    }
+
     var selected by remember {
         mutableIntStateOf(0)
     }
@@ -176,10 +172,6 @@ fun BottomBarHostingScreen(
         )
         getUpdateTotalWaterTrackingAmount(onTotalWaterTrackingResourceAmount)
         getGreeting()
-        delay(3000)
-        onTitleChage = true
-        delay(3000)
-        onTitleChage = false
     }
 
 
@@ -189,8 +181,6 @@ fun BottomBarHostingScreen(
             if (isOnHome) {
                 TopBarLayout(
                     onTime = onTime,
-                    onUserName = onUserName,
-                    onTitleChange = onTitleChage,
                 )
             }
         },
@@ -406,7 +396,8 @@ fun WaterCarouselSheet(
     val itemHeightDp = 56.dp
     val pickerHeight = itemHeightDp * visibleItems
 
-    val totalDataItems = if (isEndless) Int.MAX_VALUE else items.size
+    // Use Int.MAX_VALUE - 2 to avoid integer overflow when LazyColumn adds spacer items
+    val totalDataItems = if (isEndless) Int.MAX_VALUE - 2 else items.size
 
     // Snap to the center item when scrolling stops
     LaunchedEffect(listState.isScrollInProgress) {
@@ -432,7 +423,7 @@ fun WaterCarouselSheet(
         if (items.isNotEmpty()) {
             // Add 1 for the top spacer item
             val startIndex = if (isEndless) {
-                val midpoint = (Int.MAX_VALUE / 2)
+                val midpoint = (totalDataItems / 2)
                 midpoint - (midpoint % items.size) + selected + 1
             } else {
                 selected + 1
@@ -510,7 +501,7 @@ fun WaterCarouselSheet(
                     Spacer(modifier = Modifier.height(itemHeightDp))
                 }
                 items(
-                    count = if (isEndless) Int.MAX_VALUE else items.size,
+                    count = totalDataItems,
                     itemContent = {
                         val index = it % items.size
                         val isSelected = index == selected
@@ -603,45 +594,22 @@ fun WaterCarouselSheet(
 @Composable
 fun TopBarLayout(
     onTime: String,
-    onTitleChange: Boolean,
-    onUserName: String,
 ) {
 
     TopAppBar(
         title = {
-            AnimatedVisibility(
-                visible = !onTitleChange, enter = fadeIn(), exit = fadeOut()
-            ) {
-                Text(
-                    text = "$onTime \uD83D\uDC4B",
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    style = TextStyle(
-                        fontSize = 26.sp,
-                        fontFamily = fontFamilyLight,
-                        fontWeight = FontWeight(200),
-                        color = primaryBlack,
-                        textAlign = TextAlign.Start,
-                    )
+            Text(
+                text = "$onTime \uD83D\uDC4B",
+                modifier = Modifier
+                    .fillMaxWidth(),
+                style = TextStyle(
+                    fontSize = 26.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(200),
+                    color = primaryBlack,
+                    textAlign = TextAlign.Start,
                 )
-            }
-            AnimatedVisibility(
-                visible = onTitleChange, enter = fadeIn(), exit = fadeOut()
-            ) {
-                Text(
-                    text = "$onUserName \uD83D\uDC4B",
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    style = TextStyle(
-                        fontSize = 26.sp,
-                        fontFamily = fontFamilyLight,
-                        fontWeight = FontWeight(200),
-                        color = primaryBlack,
-                        textAlign = TextAlign.Start,
-                    )
-                )
-            }
-
+            )
         },
         actions = {
 //            Row(
@@ -786,7 +754,6 @@ fun PreviewBottomBarHostingScreen() {
         navController = navController,
         onReward = false,
         onTotalWaterTrackingResourceAmount = 300,
-        onUserName = "Hitesh",
         onWaterTrackingResourceAmount = 300,
         getReward = {},
         getWaterTrackingResourceAmount = {},
