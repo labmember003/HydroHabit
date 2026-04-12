@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1042045653739:android:0ac4d64fea579fbcbae4ae",
         "android_client_info": {
-          "package_name": "com.example.mizu"
+          "package_name": "com.falcon.hydrohabit"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "1042045653739-ost8ovmf9q5gfp0cgdk2mgko75cn59ev.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.mizu",
+            "package_name": "com.falcon.hydrohabit",
             "certificate_hash": "56f11e95e05172031a2c00faf1a55e1843145cbe"
           }
         },

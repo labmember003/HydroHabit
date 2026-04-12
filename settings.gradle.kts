@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Mizu"
+rootProject.name = "HydroHabit"
 include(":app")
  

@@ -1,10 +1,10 @@
-Mizu (Jetpack Compose-based Water Tracking app)
+HydroHabit (Jetpack Compose-based Water Tracking app)
 
 <img src="https://github.com/Hitoli/Mizu/assets/97933783/3794c6af-6e59-4da2-a890-d99a5482b455" alt="drawing" width="100"/>
 
-Welcome to Mizu, an open-source water-tracking app developed using Jetpack Compose and Kotlin. Mizu is a simple water-tracking app that helps users develop a habit of tracking their water. It also has habit charts and goals that help them remain healthy and inculcate good habits in their lives.
+Welcome to HydroHabit, an open-source water-tracking app developed using Jetpack Compose and Kotlin. HydroHabit is a simple water-tracking app that helps users develop a habit of tracking their water. It also has habit charts and goals that help them remain healthy and inculcate good habits in their lives.
 
-### Mizu Features
+### HydroHabit Features
 
 - **Daily Water Intake Tracking:** Log your daily water consumption easily.
 - **Customizable Goals:** Set personal water intake goals based on your needs.
@@ -27,7 +27,7 @@ Welcome to Mizu, an open-source water-tracking app developed using Jetpack Compo
 
 ## UI Screens Design
 
-#### Mizu App Screens:
+#### HydroHabit App Screens:
 
 <img width="699" alt="Screenshot 2024-02-26 213333" src="https://github.com/Hitoli/Mizu/assets/97933783/acce3441-8f73-4dfd-bd61-2f82a7f35223">
 
@@ -67,4 +67,3 @@ You can find me on Twitter, Linkedin and Youtube
 - [Youtube](https://www.youtube.com/channel/UCmMDXnbLjBUqXTItc8ODw-g)
 - [Twitter](https://twitter.com/Hitesh__kohli)
 - [Linkedin](https://www.linkedin.com/in/hitesh-kohli/)
-
