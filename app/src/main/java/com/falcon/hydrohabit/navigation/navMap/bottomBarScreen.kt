@@ -121,7 +121,7 @@ fun BottomBarHostingScreen(
         mutableStateOf(false)
     }
     var selected by remember {
-        mutableIntStateOf(-1)
+        mutableIntStateOf(0)
     }
     var showBottomBar by remember {
         mutableStateOf(false)
@@ -371,7 +371,6 @@ fun BottomBarHostingScreen(
             WaterCarouselSheet(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.65f)
                     .background(
                         Color.White,
                         shape = RoundedCornerShape(16.dp)
@@ -403,117 +402,199 @@ fun WaterCarouselSheet(
     getSelected: (Int) -> Unit,
     getWaterAddSheet: (Boolean) -> Unit
 ) {
-    Box(modifier = modifier) {
-        Column(modifier = Modifier.align(Alignment.Center)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .padding(10.dp),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Text(
-                    text = "Add Water: ", modifier = Modifier.weight(0.5f),
-                    style = TextStyle(
-                        fontSize = 24.sp,
-                        fontFamily = fontFamilyLight,
-                        fontWeight = FontWeight(400),
-                        color = primaryBlack,
-                        textAlign = TextAlign.Center,
-                    )
+    val visibleItems = 3 // number of visible items in the picker
+    val itemHeightDp = 56.dp
+    val pickerHeight = itemHeightDp * visibleItems
 
-                )
-                Text(
-                    text = if (selected != -1) items[selected].toString() else "",
-                    modifier = Modifier.weight(0.5f),
-                    style = TextStyle(
-                        fontSize = 24.sp,
-                        fontFamily = fontFamilyLight,
-                        fontWeight = FontWeight(400),
-                        color = primaryBlack,
-                        textAlign = TextAlign.Center,
-                    )
+    val totalDataItems = if (isEndless) Int.MAX_VALUE else items.size
 
-                )
+    // Snap to the center item when scrolling stops
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (!listState.isScrollInProgress) {
+            val layoutInfo = listState.layoutInfo
+            val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+            // Data items are indices 1..totalDataItems (index 0 is top spacer, totalDataItems+1 is bottom spacer)
+            val closestItem = layoutInfo.visibleItemsInfo
+                .filter { it.index in 1..totalDataItems }
+                .minByOrNull {
+                    kotlin.math.abs((it.offset + it.size / 2) - viewportCenter)
+                }
+            closestItem?.let {
+                val dataIndex = (it.index - 1) % items.size
+                getSelected(dataIndex)
+                listState.animateScrollToItem(it.index, -(layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset - it.size) / 2)
             }
+        }
+    }
+
+    // Scroll to selected item on first composition
+    LaunchedEffect(Unit) {
+        if (items.isNotEmpty()) {
+            // Add 1 for the top spacer item
+            val startIndex = if (isEndless) {
+                val midpoint = (Int.MAX_VALUE / 2)
+                midpoint - (midpoint % items.size) + selected + 1
+            } else {
+                selected + 1
+            }
+            listState.scrollToItem(startIndex, 0)
+            val layoutInfo = listState.layoutInfo
+            val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+            val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == startIndex }
+            itemInfo?.let {
+                listState.scrollToItem(startIndex, -(viewportHeight - it.size) / 2)
+            }
+        }
+    }
+
+    Column(modifier = modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+        // Header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Add Water",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(500),
+                    color = primaryBlack,
+                )
+            )
+            Text(
+                text = if (selected >= 0 && selected < items.size) "${items[selected]} ml" else "",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(500),
+                    color = waterColor,
+                )
+            )
+        }
+
+        // Picker wheel
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(pickerHeight)
+        ) {
+            // Selection highlight band
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth()
+                    .height(itemHeightDp)
+                    .background(
+                        waterColor.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        width = 1.5.dp,
+                        color = waterColor.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            )
+
             LazyColumn(
                 state = listState,
                 modifier = Modifier
-                    .background(Color.Transparent)
                     .fillMaxWidth()
-                    .height(250.dp)
-
+                    .height(pickerHeight)
             ) {
+                // Top spacer so first item can be centered
+                item {
+                    Spacer(modifier = Modifier.height(itemHeightDp))
+                }
                 items(
                     count = if (isEndless) Int.MAX_VALUE else items.size,
                     itemContent = {
                         val index = it % items.size
+                        val isSelected = index == selected
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .height(itemHeightDp),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = items[index].toString(), modifier = Modifier
-                                    .align(
-                                        Alignment.Center
-                                    )
-                                    .clickable {
-                                        getSelected(index)
-                                        Log.d("Target Water ", items[index].toString())
-                                    },
+                                text = "${items[index]} ml",
                                 style = TextStyle(
-                                    fontSize = if (index == selected) 40.sp else 30.sp,
+                                    fontSize = if (isSelected) 28.sp else 20.sp,
                                     fontFamily = fontFamilyLight,
-                                    fontWeight = if (index == selected) FontWeight(500) else FontWeight(
-                                        400
-                                    ),
-                                    color = if (index == selected) primaryBlack else primaryBlack.copy(
-                                        alpha = 0.6f
-                                    ),
+                                    fontWeight = if (isSelected) FontWeight(600) else FontWeight(400),
+                                    color = if (isSelected) primaryBlack else primaryBlack.copy(alpha = 0.35f),
                                     textAlign = TextAlign.Center,
                                 )
                             )
                         }
-                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 )
+                // Bottom spacer so last item can be centered
+                item {
+                    Spacer(modifier = Modifier.height(itemHeightDp))
+                }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            Button(
-                onClick = {
-                    if (selected != -1 && selected < items.size) {
-                        getWaterTrackingResourceAmount(items[selected])
-                        getWaterAddSheet(false)
-                        getSelected(-1)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .padding(start = 14.dp, end = 14.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonColors(
-                    containerColor = waterColor,
-                    contentColor = Color.White,
-                    disabledContainerColor = waterColor.copy(alpha = 0.5f),
-                    disabledContentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Done", modifier = Modifier,
-                    style = TextStyle(
-                        fontSize = 24.sp,
-                        fontFamily = fontFamilyLight,
-                        fontWeight = FontWeight(400),
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                    )
 
+            // Top and bottom fade gradients
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(itemHeightDp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.White, Color.White.copy(alpha = 0f))
+                        )
+                    )
+            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(itemHeightDp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.White.copy(alpha = 0f), Color.White)
+                        )
+                    )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                if (selected >= 0 && selected < items.size) {
+                    getWaterTrackingResourceAmount(items[selected])
+                    getWaterAddSheet(false)
+                    getSelected(0)
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonColors(
+                containerColor = waterColor,
+                contentColor = Color.White,
+                disabledContainerColor = waterColor.copy(alpha = 0.5f),
+                disabledContentColor = Color.White
+            )
+        ) {
+            Text(
+                text = "Done",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(500),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
                 )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
+            )
         }
     }
 }
