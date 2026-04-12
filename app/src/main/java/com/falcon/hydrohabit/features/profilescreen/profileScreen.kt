@@ -2,6 +2,7 @@ package com.falcon.hydrohabit.features.profilescreen
 
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +66,27 @@ private val intervalOptions = listOf(
 
 val intervalMinutesMap = listOf(30, 60, 120, 180, 240)
 
+val soundOptions = listOf(
+    "Droplet",
+    "Ripple",
+    "Stream",
+    "Cascade",
+    "Splash",
+    "System Default",
+)
+
+// Resource IDs for custom sounds (index 0-4), index 5 = system default (null)
+fun getSoundResId(index: Int): Int? {
+    return when (index) {
+        0 -> com.falcon.hydrohabit.R.raw.water_drop_1
+        1 -> com.falcon.hydrohabit.R.raw.water_drop_2
+        2 -> com.falcon.hydrohabit.R.raw.water_drop_3
+        3 -> com.falcon.hydrohabit.R.raw.water_drop_4
+        4 -> com.falcon.hydrohabit.R.raw.water_drop_5
+        else -> null // system default
+    }
+}
+
 private fun formatHour(hour: Int): String {
     return when {
         hour == 0 -> "12:00 AM"
@@ -81,11 +104,13 @@ fun SettingsScreen(
     getIntervalChange: (Int) -> Unit,
     getWakeUpHourChange: (Int) -> Unit,
     getBedHourChange: (Int) -> Unit,
+    getSoundChange: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     var showIntervalDialog by remember { mutableStateOf(false) }
     var showWakeUpDialog by remember { mutableStateOf(false) }
     var showBedTimeDialog by remember { mutableStateOf(false) }
+    var showSoundDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -178,6 +203,15 @@ fun SettingsScreen(
             title = "Bed Time",
             value = formatHour(profileData.bedHour),
             onClick = { showBedTimeDialog = true }
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Notification Sound
+        SettingsRow(
+            title = "Notification Sound",
+            value = soundOptions[profileData.selectedSoundIndex],
+            onClick = { showSoundDialog = true }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -277,6 +311,19 @@ fun SettingsScreen(
                 showBedTimeDialog = false
             },
             onDismiss = { showBedTimeDialog = false }
+        )
+    }
+
+    // Sound Picker Dialog
+    if (showSoundDialog) {
+        SoundPickerDialog(
+            context = context,
+            currentIndex = profileData.selectedSoundIndex,
+            onSelect = { index ->
+                getSoundChange(index)
+                showSoundDialog = false
+            },
+            onDismiss = { showSoundDialog = false }
         )
     }
 }
@@ -438,6 +485,160 @@ private fun OptionPickerDialog(
     }
 }
 
+@Composable
+private fun SoundPickerDialog(
+    context: Context,
+    currentIndex: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var previewIndex by remember { mutableStateOf(currentIndex) }
+
+    // Clean up MediaPlayer when dialog closes
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+    }
+
+    fun previewSound(index: Int) {
+        mediaPlayer?.release()
+        mediaPlayer = null
+        val resId = getSoundResId(index)
+        if (resId != null) {
+            try {
+                mediaPlayer = MediaPlayer.create(context, resId)
+                mediaPlayer?.setOnCompletionListener { mp ->
+                    mp.release()
+                    if (mediaPlayer == mp) mediaPlayer = null
+                }
+                mediaPlayer?.start()
+            } catch (_: Exception) { }
+        } else {
+            // System default — play default notification sound
+            try {
+                val defaultUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                val ringtone = android.media.RingtoneManager.getRingtone(context, defaultUri)
+                ringtone?.play()
+            } catch (_: Exception) { }
+        }
+    }
+
+    Dialog(onDismissRequest = {
+        mediaPlayer?.release()
+        onDismiss()
+    }) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "Notification Sound",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontFamily = fontFamilyBold,
+                    fontWeight = FontWeight(600),
+                    color = primaryBlack,
+                )
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Tap to preview sound",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight(400),
+                    color = Color(0xFF8E8E93),
+                )
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            soundOptions.forEachIndexed { index, label ->
+                val isSelected = index == previewIndex
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            previewIndex = index
+                            previewSound(index)
+                        }
+                        .background(
+                            color = if (isSelected) waterColor.copy(alpha = 0.1f) else Color.Transparent,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = if (index < 5) "🔔 " else "📱 ",
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = label,
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontFamily = fontFamilyLight,
+                                fontWeight = if (isSelected) FontWeight(500) else FontWeight(400),
+                                color = if (isSelected) waterColor else primaryBlack,
+                            )
+                        )
+                    }
+                    if (isSelected) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Selected",
+                            tint = waterColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    onClick = {
+                        mediaPlayer?.release()
+                        onDismiss()
+                    }
+                ) {
+                    Text(
+                        text = "Cancel",
+                        color = Color(0xFF8E8E93),
+                        fontFamily = fontFamily,
+                        fontSize = 14.sp
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(
+                    onClick = {
+                        mediaPlayer?.release()
+                        onSelect(previewIndex)
+                    }
+                ) {
+                    Text(
+                        text = "Done",
+                        color = waterColor,
+                        fontFamily = fontFamilyBold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
 private fun sendBugReportEmail(context: Context) {
     val intent = Intent(Intent.ACTION_SENDTO).apply {
         data = "mailto:".toUri()
@@ -469,11 +670,13 @@ fun PreviewSettingsScreen() {
             onNotificationChange = false,
             selectedIntervalIndex = 1,
             wakeUpHour = 8,
-            bedHour = 22
+            bedHour = 22,
+            selectedSoundIndex = 0
         ),
         getNotificationChange = {},
         getIntervalChange = {},
         getWakeUpHourChange = {},
-        getBedHourChange = {}
+        getBedHourChange = {},
+        getSoundChange = {}
     )
 }

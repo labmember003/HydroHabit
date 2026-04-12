@@ -149,6 +149,9 @@ fun BottomBarHostingScreen(
     var bedHour by remember {
         mutableIntStateOf(prefs.getInt("bed_hour", 22))
     }
+    var selectedSoundIndex by remember {
+        mutableIntStateOf(prefs.getInt("notification_sound_index", 0))
+    }
 
     // Helper to schedule or cancel notifications based on current settings
     fun rescheduleNotifications() {
@@ -370,7 +373,8 @@ fun BottomBarHostingScreen(
                         onNotificationChange = notificationsEnabled,
                         selectedIntervalIndex = selectedIntervalIndex,
                         wakeUpHour = wakeUpHour,
-                        bedHour = bedHour
+                        bedHour = bedHour,
+                        selectedSoundIndex = selectedSoundIndex
                     ),
                     getNotificationChange = {
                         notificationsEnabled = it
@@ -391,6 +395,10 @@ fun BottomBarHostingScreen(
                         bedHour = it
                         prefs.edit().putInt("bed_hour", it).apply()
                         rescheduleNotifications()
+                    },
+                    getSoundChange = {
+                        selectedSoundIndex = it
+                        prefs.edit().putInt("notification_sound_index", it).apply()
                     },
                     modifier = Modifier
                         .fillMaxSize()
