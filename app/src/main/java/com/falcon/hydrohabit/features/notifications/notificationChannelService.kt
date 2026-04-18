@@ -1,10 +1,11 @@
 package com.falcon.hydrohabit.features.notifications
 
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import android.media.AudioAttributes
 import androidx.core.app.NotificationCompat
 import com.falcon.hydrohabit.MainActivity
 import com.falcon.hydrohabit.R
@@ -17,29 +18,12 @@ class NotificationChannelService(
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     companion object {
-        val notificationIDWaterReminder = "Water_reminder_notification_ID"
+        const val CHANNEL_ID_PREFIX = "water_reminder_sound_"
     }
 
-    override fun showNotification(reminder: String) {
-        val activityIntent = Intent(context, MainActivity::class.java)
-        val activityPendingIntent = PendingIntent.getActivity(
-            context,
-            1234,
-            activityIntent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
+    private fun getChannelId(soundIndex: Int): String = "$CHANNEL_ID_PREFIX$soundIndex"
 
-        val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
-        val soundIndex = prefs.getInt("notification_sound_index", 0)
-
-        val builder = NotificationCompat.Builder(context, notificationIDWaterReminder)
-            .setSmallIcon(R.drawable.hydrohabit_logo)
-            .setContentTitle("Water Reminder 💧")
-            .setContentText(reminder)
-            .setContentIntent(activityPendingIntent)
-            .setAutoCancel(true)
-
-        // Set custom sound if not system default (index 5)
+    private fun getSoundUri(soundIndex: Int): android.net.Uri? {
         val soundResId = when (soundIndex) {
             0 -> R.raw.water_drop_1
             1 -> R.raw.water_drop_2
@@ -48,13 +32,53 @@ class NotificationChannelService(
             4 -> R.raw.water_drop_5
             else -> null
         }
+        return soundResId?.let { "android.resource://${context.packageName}/$it".toUri() }
+    }
 
-        if (soundResId != null) {
-            val soundUri = "android.resource://${context.packageName}/$soundResId".toUri()
-            builder.setSound(soundUri)
+    private fun ensureChannel(soundIndex: Int) {
+        val channelId = getChannelId(soundIndex)
+        if (notificationManager.getNotificationChannel(channelId) != null) return
+
+        val soundUri = getSoundUri(soundIndex)
+        val channelName = when (soundIndex) {
+            0 -> "Water Reminder - Droplet"
+            1 -> "Water Reminder - Ripple"
+            2 -> "Water Reminder - Stream"
+            3 -> "Water Reminder - Cascade"
+            4 -> "Water Reminder - Ocean"
+            else -> "Water Reminder - System Default"
         }
-        // If null (system default), NotificationCompat uses the channel default sound
+        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Reminds user to drink water"
+            if (soundUri != null) {
+                setSound(soundUri, AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build())
+            }
+        }
+        notificationManager.createNotificationChannel(channel)
+    }
 
-        notificationManager.notify(1234, builder.build())
+    override fun showNotification(reminder: String) {
+        val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        val soundIndex = prefs.getInt("notification_sound_index", 0)
+
+        val channelId = getChannelId(soundIndex)
+        ensureChannel(soundIndex)
+
+        val activityIntent = Intent(context, MainActivity::class.java)
+        val activityPendingIntent = PendingIntent.getActivity(
+            context, 1234, activityIntent, PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.hydrohabit_logo)
+            .setContentTitle("Water Reminder 💧")
+            .setContentText(reminder)
+            .setContentIntent(activityPendingIntent)
+            .setAutoCancel(true)
+
+        notificationManager.notify(1001, builder.build())
     }
 }

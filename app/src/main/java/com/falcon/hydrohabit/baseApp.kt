@@ -20,25 +20,13 @@ class BaseAppHydroHabit:Application(){
             modules(DIModule)
         }
         createNotificationChannel()
-
-
-
     }
 
 
-
-
-
-    // Creates a Notification Channel to Show Notifications
+    // Delete legacy notification channel and let NotificationChannelService handle channels per sound
     private fun createNotificationChannel(){
-        val channel = NotificationChannel(
-            NotificationChannelService.notificationIDWaterReminder,
-            "Water Reminders",
-            NotificationManager.IMPORTANCE_HIGH
-        )
-        channel.description =" Reminds user to drink water"
-
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+        // Remove old channel if it exists
+        notificationManager.deleteNotificationChannel("Water_reminder_notification_ID")
     }
 }

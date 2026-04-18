@@ -62,7 +62,7 @@ import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.ui.theme.waterColorMeter
 
 private val intervalOptions = buildList {
-    if (BuildConfig.DEBUG) add("15 seconds")
+    if (BuildConfig.DEBUG) add("1 minute")
     addAll(listOf("30 minutes", "1 hour", "2 hours", "3 hours", "4 hours"))
 }
 

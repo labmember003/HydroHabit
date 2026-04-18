@@ -153,7 +153,7 @@ fun BottomBarHostingScreen(
     fun rescheduleNotifications() {
         if (notificationsEnabled) {
             val intervalMinutes = com.falcon.hydrohabit.features.profilescreen.intervalMinutesMap[selectedIntervalIndex]
-            alarmScheduler.scheduleRepeating(intervalMinutes, wakeUpHour, bedHour)
+            alarmScheduler.scheduleRepeating(intervalMinutes, wakeUpHour, wakeUpMinute, bedHour, bedMinute)
         } else {
             alarmScheduler.cancelAll()
         }
@@ -174,6 +174,8 @@ fun BottomBarHostingScreen(
         )
         getUpdateTotalWaterTrackingAmount(onTotalWaterTrackingResourceAmount)
         getGreeting()
+        // Schedule notifications on app startup based on saved settings
+        rescheduleNotifications()
     }
 
 

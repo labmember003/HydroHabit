@@ -21,43 +21,77 @@ class AlarmScheduler(
     fun scheduleRepeating(
         intervalMinutes: Int,
         wakeUpHour: Int = 8,
-        bedHour: Int = 22
+        wakeUpMinute: Int = 0,
+        bedHour: Int = 22,
+        bedMinute: Int = 0
     ) {
         // Cancel any existing alarms first
         cancelAll()
 
         val now = Calendar.getInstance()
-        val start = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, wakeUpHour)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            // If wake time already passed today, start from next interval
-            if (before(now)) {
-                // Find the next alarm time after now
-                while (before(now)) {
-                    add(Calendar.MINUTE, intervalMinutes)
+        val isOvernightSchedule = bedHour < wakeUpHour || (bedHour == wakeUpHour && bedMinute < wakeUpMinute)
+        val nowHour = now.get(Calendar.HOUR_OF_DAY)
+        val nowMinute = now.get(Calendar.MINUTE)
+        // Check if current time is in the still-awake-from-yesterday window (midnight → bed time)
+        val isBeforeBedInOvernight = isOvernightSchedule &&
+                (nowHour < bedHour || (nowHour == bedHour && nowMinute < bedMinute))
+
+        val bedTime: Calendar
+        val start: Calendar
+
+        if (isBeforeBedInOvernight) {
+            // User is still awake from yesterday (e.g., it's 12:06 AM, bed is 1 AM)
+            // Schedule from now to bed time TODAY
+            bedTime = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, bedHour)
+                set(Calendar.MINUTE, bedMinute)
+                set(Calendar.SECOND, 0)
+            }
+            start = Calendar.getInstance().apply {
+                // Round up to next minute
+                add(Calendar.MINUTE, 1)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+        } else {
+            // Normal case: schedule from wake time onwards
+            start = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, wakeUpHour)
+                set(Calendar.MINUTE, wakeUpMinute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+                if (before(now)) {
+                    while (before(now)) {
+                        add(Calendar.MINUTE, intervalMinutes)
+                    }
+                }
+            }
+            bedTime = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, bedHour)
+                set(Calendar.MINUTE, bedMinute)
+                set(Calendar.SECOND, 0)
+                if (isOvernightSchedule) {
+                    add(Calendar.DAY_OF_YEAR, 1)
                 }
             }
         }
 
-        val bedTime = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, bedHour)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
+        if (!start.before(bedTime)) {
+            // Log.w(TAG, "START is after BEDTIME — no alarms will be scheduled!")
         }
 
         // Schedule individual alarms for today's remaining slots
         var requestCode = 1000
+        var count = 0
+        val maxAlarms = 50
         val current = start.clone() as Calendar
-        while (current.before(bedTime)) {
+        while (current.before(bedTime) && count < maxAlarms) {
             val intent = Intent(context, AlarmReceiver::class.java).apply {
                 putExtra("waterReminderMessage", "Time to drink water! 💧 Stay hydrated.")
             }
-            alarmManager.setRepeating(
+            alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 current.timeInMillis,
-                AlarmManager.INTERVAL_DAY,
                 PendingIntent.getBroadcast(
                     context,
                     requestCode++,
@@ -65,6 +99,7 @@ class AlarmScheduler(
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
             )
+            count++
             current.add(Calendar.MINUTE, intervalMinutes)
         }
     }
