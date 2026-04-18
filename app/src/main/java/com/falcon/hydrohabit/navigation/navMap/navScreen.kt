@@ -2,27 +2,17 @@ package com.falcon.hydrohabit.navigation.navMap
 
 import android.content.SharedPreferences
 import android.util.Log
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.falcon.hydrohabit.features.homescreen.HomeViewModel
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
-import com.falcon.hydrohabit.features.splash_screen.SplashScreen
-import com.falcon.hydrohabit.ui.theme.backgroundColor2
-import com.falcon.hydrohabit.ui.theme.waterColorBackground
 import com.falcon.hydrohabit.navigation.navUtils.NavScreens
-import com.falcon.hydrohabit.utils.Utils
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -34,18 +24,12 @@ fun NavScreen(
 ) {
     val TAG = "NavScreen"
     val navController = rememberNavController()
-    var startDestination by remember {
-        mutableStateOf(NavScreens.SplashNavHostingScreen.route)
-    }
     val isOnboardingCompleted = sharedPreferences.getBoolean("onBoardingCompleted", false)
-
-    LaunchedEffect(Unit) {
-        startDestination = if (!isOnboardingCompleted) {
-            NavScreens.OnboardingNavHostingScreen.route
-        } else {
-            NavScreens.BottomNavHostingScreen.route
-        }
-        Utils.logIt(TAG, "onboarding Completed $startDestination")
+    var startDestination by remember {
+        mutableStateOf(
+            if (!isOnboardingCompleted) NavScreens.OnboardingNavHostingScreen.route
+            else NavScreens.BottomNavHostingScreen.route
+        )
     }
 
     NavHost(
@@ -94,19 +78,6 @@ fun NavScreen(
                 }
                 OnboardingViewModel.updateUserSettings(true)
             }, onboardingViewModel = OnboardingViewModel)
-        }
-        composable(route = NavScreens.SplashNavHostingScreen.route) {
-            SplashScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            start = Offset(Float.POSITIVE_INFINITY * 0.4f, 0f),
-                            end = Offset(0f, Float.POSITIVE_INFINITY),
-                            colors = mutableListOf(waterColorBackground, backgroundColor2)
-                        )
-                    )
-            )
         }
     }
 }

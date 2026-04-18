@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
+import com.falcon.hydrohabit.BuildConfig
 import com.falcon.hydrohabit.features.profilescreen.utils.profileData
 import com.falcon.hydrohabit.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.ui.theme.fontFamily
@@ -60,15 +61,15 @@ import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.ui.theme.waterColorMeter
 
-private val intervalOptions = listOf(
-    "30 minutes",
-    "1 hour",
-    "2 hours",
-    "3 hours",
-    "4 hours",
-)
+private val intervalOptions = buildList {
+    if (BuildConfig.DEBUG) add("15 seconds")
+    addAll(listOf("30 minutes", "1 hour", "2 hours", "3 hours", "4 hours"))
+}
 
-val intervalMinutesMap = listOf(30, 60, 120, 180, 240)
+val intervalMinutesMap = buildList {
+    if (BuildConfig.DEBUG) add(1) // 1 minute for debug testing
+    addAll(listOf(30, 60, 120, 180, 240))
+}
 
 val soundOptions = listOf(
     "Droplet",

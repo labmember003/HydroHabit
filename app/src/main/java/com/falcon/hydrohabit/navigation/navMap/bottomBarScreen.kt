@@ -45,10 +45,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,7 +104,7 @@ fun BottomBarHostingScreen(
     onProgress: String,
     onTime: String,
     getGreeting: () -> Unit,
-    isEndless: Boolean = true,
+    isEndless: Boolean = false,
     items: List<Int>,
     streakImages: List<Int>,
 ) {
@@ -178,7 +180,11 @@ fun BottomBarHostingScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            if (isOnHome) {
+            AnimatedVisibility(
+                visible = isOnHome,
+                enter = fadeIn(animationSpec = tween(150)),
+                exit = fadeOut(animationSpec = tween(150))
+            ) {
                 TopBarLayout(
                     onTime = onTime,
                 )
@@ -398,6 +404,24 @@ fun WaterCarouselSheet(
 
     // Use Int.MAX_VALUE - 2 to avoid integer overflow when LazyColumn adds spacer items
     val totalDataItems = if (isEndless) Int.MAX_VALUE - 2 else items.size
+
+    // Haptic feedback on scroll item change
+    val view = LocalView.current
+    val lastCenteredIndex = remember { mutableIntStateOf(-1) }
+    LaunchedEffect(remember { derivedStateOf { listState.firstVisibleItemIndex } }, listState.firstVisibleItemScrollOffset) {
+        val layoutInfo = listState.layoutInfo
+        val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+        val closestItem = layoutInfo.visibleItemsInfo
+            .filter { it.index in 1..totalDataItems }
+            .minByOrNull { kotlin.math.abs((it.offset + it.size / 2) - viewportCenter) }
+        closestItem?.let {
+            val dataIndex = (it.index - 1) % items.size
+            if (lastCenteredIndex.intValue != dataIndex) {
+                lastCenteredIndex.intValue = dataIndex
+                view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+            }
+        }
+    }
 
     // Snap to the center item when scrolling stops
     LaunchedEffect(listState.isScrollInProgress) {

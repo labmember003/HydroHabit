@@ -104,7 +104,7 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
 
     // Updates the perks in perk sheet
     fun updatePerks(){
-        println("Streak Score ${streakScore}")
+        println("Streak Score $streakScore")
         when {
             streakScore>=1 -> {
                 perks.add(R.drawable.day1)
