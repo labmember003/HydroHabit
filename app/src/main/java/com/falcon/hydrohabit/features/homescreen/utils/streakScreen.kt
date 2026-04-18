@@ -22,11 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import com.falcon.hydrohabit.ui.theme.fontFamily
+import androidx.compose.ui.graphics.Color
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 
 @Composable
-fun StreakScreen(modifier: Modifier=Modifier,Streak:String,username:String,getStreak:()->Unit) {
+fun StreakScreen(Streak:String, username:String, getStreak:()->Unit) {
     val LocalConfig = LocalConfiguration.current
     val screenWidth = LocalConfig.screenWidthDp.dp
     val screenHeight = LocalConfig.screenHeightDp.dp
@@ -81,14 +82,14 @@ fun StreakScreen(modifier: Modifier=Modifier,Streak:String,username:String,getSt
                 fontSize = 15.sp,
                 fontFamily = fontFamily,
                 fontWeight = FontWeight(500),
-                color = primaryBlack,
+                color = Color.White,
                 textAlign = TextAlign.Start,
             )
         )
 
         Box(modifier = Modifier.align(Alignment.CenterEnd)){
             Text(
-                text = "${Streak} \uD83D\uDD25",
+                text = "$Streak \uD83D\uDD25",
                 modifier = Modifier
                     .width(60.dp)
                     .align(Alignment.Center),
@@ -96,38 +97,10 @@ fun StreakScreen(modifier: Modifier=Modifier,Streak:String,username:String,getSt
                     fontSize = 15.sp,
                     fontFamily = fontFamily,
                     fontWeight = FontWeight(500),
-                    color = primaryBlack,
-                    textAlign = TextAlign.Center,
+                color = Color.White,
+                textAlign = TextAlign.Center,
                 )
             )
-//            Canvas(
-//                modifier = Modifier
-//                    .size(screenHeight.value * 0.05.dp)
-//                    .align(Alignment.Center),
-//                onDraw = {
-//
-//                    val strokeWidth = .5f
-//                    drawCircle(
-//                        color = minorColor,
-//                        radius = screenHeight.value * 0.05f,
-//                        style = Stroke(
-//                            width = strokeWidth
-//                        )
-//                    )
-//
-//                }
-//            )
         }
     }
-
-
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewStreakScreen() {
-    StreakScreen(Streak = "6", username = "Hitesh", getStreak = {
-
-    })
-
 }
