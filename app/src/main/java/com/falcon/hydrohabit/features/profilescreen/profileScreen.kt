@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -132,7 +133,18 @@ fun SettingsScreen(
             onCustomSoundPicked(pickedUri.toString())
             getSoundChange(6)
         }
-        showSoundDialog = false
+    }
+
+    fun launchCustomSoundPicker() {
+        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Notification Sound")
+            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+            if (profileData.customSoundUri != null) {
+                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, profileData.customSoundUri.toUri())
+            }
+        }
+        ringtoneLauncher.launch(intent)
     }
 
     Column(
@@ -232,7 +244,7 @@ fun SettingsScreen(
 
         // Notification Sound
         val soundDisplayName = if (profileData.selectedSoundIndex == 6 && profileData.customSoundUri != null) {
-            val ringtone = RingtoneManager.getRingtone(context, Uri.parse(profileData.customSoundUri))
+            val ringtone = RingtoneManager.getRingtone(context, profileData.customSoundUri.toUri())
             ringtone?.getTitle(context) ?: "Custom"
         } else {
             soundOptions[profileData.selectedSoundIndex]
@@ -342,16 +354,8 @@ fun SettingsScreen(
             currentIndex = profileData.selectedSoundIndex,
             onSelect = { index ->
                 if (index == 6) {
-                    // Launch system ringtone picker for custom sound
-                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Notification Sound")
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
-                        if (profileData.customSoundUri != null) {
-                            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(profileData.customSoundUri))
-                        }
-                    }
-                    ringtoneLauncher.launch(intent)
+                    showSoundDialog = false
+                    launchCustomSoundPicker()
                 } else {
                     getSoundChange(index)
                     showSoundDialog = false
@@ -527,7 +531,7 @@ private fun SoundPickerDialog(
     onDismiss: () -> Unit
 ) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
-    var previewIndex by remember { mutableStateOf(currentIndex) }
+    var previewIndex by remember { mutableIntStateOf(currentIndex) }
 
     // Clean up MediaPlayer when dialog closes
     DisposableEffect(Unit) {
@@ -553,8 +557,8 @@ private fun SoundPickerDialog(
         } else {
             // System default — play default notification sound
             try {
-                val defaultUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
-                val ringtone = android.media.RingtoneManager.getRingtone(context, defaultUri)
+                val defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                val ringtone = RingtoneManager.getRingtone(context, defaultUri)
                 ringtone?.play()
             } catch (_: Exception) { }
         }
@@ -597,8 +601,14 @@ private fun SoundPickerDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            previewIndex = index
-                            previewSound(index)
+                            if (index == 6) {
+                                // Custom — immediately trigger selection (which launches picker)
+                                mediaPlayer?.release()
+                                onSelect(6)
+                            } else {
+                                previewIndex = index
+                                previewSound(index)
+                            }
                         }
                         .background(
                             color = if (isSelected) waterColor.copy(alpha = 0.1f) else Color.Transparent,
