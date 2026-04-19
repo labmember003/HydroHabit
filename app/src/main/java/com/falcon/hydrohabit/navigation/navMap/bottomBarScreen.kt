@@ -11,13 +11,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -647,29 +645,7 @@ fun TopBarLayout(
                 )
             )
         },
-        actions = {
-//            Row(
-//                modifier = Modifier,
-//                horizontalArrangement = Arrangement.Start,
-//                verticalAlignment = Alignment.Top
-//            ) {
-//                IconButton(onClick = { /*TODO*/ }) {
-//                    Icon(
-//                        imageVector = ImageVector.vectorResource(R.drawable.notification_icon),
-//                        contentDescription = "notification",
-//                        tint = minorColor
-//                    )
-//                }
-//                IconButton(onClick = {getPorfileClick() }) {
-//                    Image(
-//                        modifier = imgModifier,
-//                        painter = painterResource(id = R.drawable.hydrohabit_name_logo),
-//                        contentDescription = "UserIcon"
-//                    )
-//                }
-//            }
-
-        },
+        actions = {},
         colors = TopAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,

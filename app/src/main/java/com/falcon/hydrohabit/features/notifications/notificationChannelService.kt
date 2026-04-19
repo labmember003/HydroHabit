@@ -92,7 +92,7 @@ class NotificationChannelService(
         )
 
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.hydrohabit_logo)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Water Reminder 💧")
             .setContentText(reminder)
             .setContentIntent(activityPendingIntent)
