@@ -1,8 +1,8 @@
 package com.falcon.hydrohabit.features.homescreen
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -37,8 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -58,6 +57,7 @@ import com.falcon.hydrohabit.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.ui.theme.blackShadeColor
 import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.primaryBlack
+import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.ui.theme.waterColorMeter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +78,7 @@ fun HomeScreen(
     val LocalConfig = LocalConfiguration.current
     val screenWidth = LocalConfig.screenWidthDp.dp
     val screenHeight = LocalConfig.screenHeightDp.dp
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true);
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val lazyListState = rememberLazyListState()
     val showBottombar by remember{
         derivedStateOf{
@@ -89,9 +89,6 @@ fun HomeScreen(
     var showStreakCollector by remember{
         mutableStateOf(false)
     }
-    var bottombarSpacer by remember {
-        mutableStateOf(onPad.calculateBottomPadding())
-    }
 
     LaunchedEffect(showBottombar){
         getBottomBar(showBottombar)
@@ -99,7 +96,7 @@ fun HomeScreen(
     }
 
 
-        if (onReward!!) {
+        if (onReward == true) {
             DialogRewardScreen(getReward = {
                 getReward(it)
             })
@@ -165,23 +162,13 @@ fun HomeScreen(
                 }
             }
             item {
-
                 GlacierScreen(
                     onWaterTrackingResourceAmount = onWaterTrackingResourceAmount,
                     onTotalWaterTrackingResourceAmount = onTotalWaterTrackingResourceAmount,
                     screenWidth = screenWidth.value*0.8.dp,
                     screenHeight = screenHeight.value * 0.6.dp
                 )
-
-
             }
-
-
-
-
-
-
-
         }
 
     }
@@ -192,49 +179,147 @@ if(showStreakCollector){
         containerColor = backgroundColor1,
         sheetState = sheetState,
         onDismissRequest = {showStreakCollector = !showStreakCollector}) {
-        StreakSheet(Streak = streakImages, modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.55f)
-            .padding(10.dp))
+            StreakSheet(streak = streakImages, modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.55f)
+                .padding(10.dp))
+        }
     }
 }
 
 
-
-
-
-
-}
-
-
 @Composable
-fun StreakSheet(Streak: List<Int>, modifier: Modifier = Modifier) {
+fun StreakSheet(streak: List<Int>, modifier: Modifier = Modifier) {
+
+    data class Achievement(
+        val title: String,
+        val description: String,
+        val emoji: String,
+        val requiredDays: Int,
+        val drawableRes: Int?
+    )
+
+    val achievements = listOf(
+        Achievement("First Drop", "Complete your first day", "💧", 1, R.drawable.day1),
+        Achievement("3-Day Flow", "Stay hydrated for 3 days", "🌊", 3, null),
+        Achievement("Week Warrior", "7 day streak", "⚡", 7, R.drawable.day3),
+        Achievement("Two Week Tide", "14 day streak", "🌿", 14, R.drawable.day4),
+        Achievement("Monthly Master", "30 day streak", "🏆", 30, R.drawable.day2),
+        Achievement("60-Day Legend", "60 day streak", "👑", 60, null),
+        Achievement("100-Day Hero", "100 day streak", "💎", 100, null),
+        Achievement("365-Day Champion", "Full year streak!", "🔥", 365, null),
+    )
+
+    val currentStreak = streak.size
+
     Box(modifier = modifier) {
         Column {
             Text(
-                text = "Perk Collector",
+                text = "Achievements",
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
                 style = TextStyle(
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     fontFamily = fontFamilyLight,
-                    fontWeight = FontWeight(400),
+                    fontWeight = FontWeight(600),
                     color = primaryBlack,
                     textAlign = TextAlign.Center,
                 )
             )
-            LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 150.dp), content = {
-                items(Streak.size) {
-                    Image(
-                        painter = painterResource(id = Streak[it]),
-                        contentDescription = "Streaks",
-                        modifier = Modifier
-                            .size(160.dp)
-                            .padding(10.dp)
-                    )
-
+            Text(
+                text = "Complete daily water goals to unlock badges",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                style = TextStyle(
+                    fontSize = 13.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(400),
+                    color = primaryBlack.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center,
+                )
+            )
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                content = {
+                    items(achievements.size) { index ->
+                        val achievement = achievements[index]
+                        val unlocked = currentStreak >= achievement.requiredDays
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (unlocked) waterColor.copy(alpha = 0.1f) else Color.Gray.copy(alpha = 0.06f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = if (unlocked) waterColor.copy(alpha = 0.3f) else Color.Gray.copy(alpha = 0.12f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = if (unlocked) achievement.emoji else "🔒",
+                                    fontSize = 32.sp,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                Text(
+                                    text = achievement.title,
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        fontFamily = fontFamilyLight,
+                                        fontWeight = FontWeight(600),
+                                        color = if (unlocked) primaryBlack else primaryBlack.copy(alpha = 0.35f),
+                                        textAlign = TextAlign.Center,
+                                    )
+                                )
+                                Text(
+                                    text = achievement.description,
+                                    style = TextStyle(
+                                        fontSize = 11.sp,
+                                        fontFamily = fontFamilyLight,
+                                        fontWeight = FontWeight(400),
+                                        color = if (unlocked) primaryBlack.copy(alpha = 0.6f) else primaryBlack.copy(alpha = 0.25f),
+                                        textAlign = TextAlign.Center,
+                                    ),
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                                if (unlocked) {
+                                    Text(
+                                        text = "✓ Unlocked",
+                                        style = TextStyle(
+                                            fontSize = 11.sp,
+                                            fontFamily = fontFamilyLight,
+                                            fontWeight = FontWeight(500),
+                                            color = waterColor,
+                                            textAlign = TextAlign.Center,
+                                        ),
+                                        modifier = Modifier.padding(top = 6.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = "${achievement.requiredDays - currentStreak} days to go",
+                                        style = TextStyle(
+                                            fontSize = 11.sp,
+                                            fontFamily = fontFamilyLight,
+                                            fontWeight = FontWeight(400),
+                                            color = primaryBlack.copy(alpha = 0.3f),
+                                            textAlign = TextAlign.Center,
+                                        ),
+                                        modifier = Modifier.padding(top = 6.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-            })
+            )
         }
 
     }
@@ -256,8 +341,6 @@ fun DialogRewardScreen(getReward: (Boolean) -> Unit) {
                 .padding(16.dp)
         )
     }
-
-
 }
 
 @Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_2_XL)
@@ -267,14 +350,11 @@ fun PreviewHomeScreen() {
     var rewardScreenShow by remember {
         mutableStateOf(false)
     }
-    var mutablePad by remember {
-        mutableStateOf(PaddingValues())
-    }
     var usedWaterAmount by remember {
         mutableIntStateOf(400)
     }
     var totalWaterAmount by remember {
-        mutableStateOf(2400)
+        mutableIntStateOf(2400)
     }
 
     HomeScreen(
