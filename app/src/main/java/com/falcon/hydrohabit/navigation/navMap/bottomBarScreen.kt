@@ -107,6 +107,8 @@ fun BottomBarHostingScreen(
     isEndless: Boolean = false,
     items: List<Int>,
     streakImages: List<Int>,
+    shouldOpenAddWater: Boolean = false,
+    onAddWaterHandled: () -> Unit = {},
 ) {
     var onAdd by remember {
         mutableStateOf(false)
@@ -176,6 +178,14 @@ fun BottomBarHostingScreen(
         getGreeting()
         // Schedule notifications on app startup based on saved settings
         rescheduleNotifications()
+    }
+
+    // Open add water dialog when triggered from notification
+    LaunchedEffect(shouldOpenAddWater) {
+        if (shouldOpenAddWater) {
+            onWaterAddSheet = true
+            onAddWaterHandled()
+        }
     }
 
 

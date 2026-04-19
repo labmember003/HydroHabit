@@ -9,6 +9,7 @@ import android.media.AudioAttributes
 import androidx.core.app.NotificationCompat
 import com.falcon.hydrohabit.MainActivity
 import com.falcon.hydrohabit.R
+import com.falcon.hydrohabit.receiver.SnoozeReceiver
 import androidx.core.net.toUri
 
 class NotificationChannelService(
@@ -67,9 +68,27 @@ class NotificationChannelService(
         val channelId = getChannelId(soundIndex)
         ensureChannel(soundIndex)
 
-        val activityIntent = Intent(context, MainActivity::class.java)
+        val activityIntent = Intent(context, MainActivity::class.java).apply {
+            putExtra("open_add_water", true)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         val activityPendingIntent = PendingIntent.getActivity(
-            context, 1234, activityIntent, PendingIntent.FLAG_IMMUTABLE
+            context, 1234, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Drink action — opens app with add water dialog
+        val drinkIntent = Intent(context, MainActivity::class.java).apply {
+            putExtra("open_add_water", true)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val drinkPendingIntent = PendingIntent.getActivity(
+            context, 1235, drinkIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Snooze action — reschedules 5 min later
+        val snoozeIntent = Intent(context, SnoozeReceiver::class.java)
+        val snoozePendingIntent = PendingIntent.getBroadcast(
+            context, 1236, snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val builder = NotificationCompat.Builder(context, channelId)
@@ -78,6 +97,8 @@ class NotificationChannelService(
             .setContentText(reminder)
             .setContentIntent(activityPendingIntent)
             .setAutoCancel(true)
+            .addAction(0, "Drink", drinkPendingIntent)
+            .addAction(0, "Snooze 5m", snoozePendingIntent)
 
         notificationManager.notify(1001, builder.build())
     }

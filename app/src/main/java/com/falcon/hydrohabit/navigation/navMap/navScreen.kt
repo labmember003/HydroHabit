@@ -20,7 +20,9 @@ import org.koin.compose.koinInject
 fun NavScreen(
     OnboardingViewModel: OnboardingViewModel = koinViewModel(),
     homeViewModel: HomeViewModel = koinViewModel(),
-    sharedPreferences: SharedPreferences = koinInject()
+    sharedPreferences: SharedPreferences = koinInject(),
+    shouldOpenAddWater: Boolean = false,
+    onAddWaterHandled: () -> Unit = {}
 ) {
     val TAG = "NavScreen"
     val navController = rememberNavController()
@@ -66,6 +68,8 @@ fun NavScreen(
                 },
                 items = mutableListOf(50, 100, 200, 300, 400, 500),
                 streakImages = homeViewModel.perks,
+                shouldOpenAddWater = shouldOpenAddWater,
+                onAddWaterHandled = onAddWaterHandled,
             )
         }
         composable(route = NavScreens.OnboardingNavHostingScreen.route) {
