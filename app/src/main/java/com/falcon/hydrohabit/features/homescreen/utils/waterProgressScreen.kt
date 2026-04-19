@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import androidx.compose.ui.graphics.Color
 import com.falcon.hydrohabit.ui.theme.fontFamily
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
@@ -78,6 +79,7 @@ fun WaterProgressScreen(modifier: Modifier = Modifier,
 
 
         }
+        val textColor = if (waterPercentageFilled.value > 0.20f) Color.White else primaryBlack
         Text(
             text = "${onWaterMeterResourceAmount}%",
             modifier = Modifier
@@ -88,7 +90,7 @@ fun WaterProgressScreen(modifier: Modifier = Modifier,
                 fontSize = 18.sp,
                 fontFamily = fontFamily,
                 fontWeight = FontWeight(500),
-                color = primaryBlack,
+                color = textColor,
                 textAlign = TextAlign.Center,
             )
         )
