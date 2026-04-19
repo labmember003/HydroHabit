@@ -22,9 +22,21 @@ class NotificationChannelService(
         const val CHANNEL_ID_PREFIX = "water_reminder_sound_"
     }
 
-    private fun getChannelId(soundIndex: Int): String = "$CHANNEL_ID_PREFIX$soundIndex"
+    private fun getChannelId(soundIndex: Int): String {
+        if (soundIndex == 6) {
+            val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+            val customUri = prefs.getString("custom_sound_uri", null) ?: return "${CHANNEL_ID_PREFIX}6_default"
+            return "${CHANNEL_ID_PREFIX}6_${customUri.hashCode()}"
+        }
+        return "$CHANNEL_ID_PREFIX$soundIndex"
+    }
 
     private fun getSoundUri(soundIndex: Int): android.net.Uri? {
+        if (soundIndex == 6) {
+            val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+            val customUri = prefs.getString("custom_sound_uri", null)
+            return customUri?.toUri()
+        }
         val soundResId = when (soundIndex) {
             0 -> R.raw.water_drop_1
             1 -> R.raw.water_drop_2
@@ -47,6 +59,7 @@ class NotificationChannelService(
             2 -> "Water Reminder - Stream"
             3 -> "Water Reminder - Cascade"
             4 -> "Water Reminder - Ocean"
+            6 -> "Water Reminder - Custom"
             else -> "Water Reminder - System Default"
         }
         val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {

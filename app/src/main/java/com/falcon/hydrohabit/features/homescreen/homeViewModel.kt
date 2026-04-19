@@ -32,8 +32,6 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
 
     var rewardDialog by mutableStateOf(false)
         private set
-    var canAddWater by mutableStateOf(true)
-        private set
 
     var streakDays =  mutableStateListOf<Int>()
         private set
@@ -69,7 +67,7 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
             getWaterAmount(context)
         }
 
-        println("streakScore Onboarding totalWaterAmount ${totalWaterAmount}")
+        println("streakScore Onboarding totalWaterAmount $totalWaterAmount")
         viewModelScope.launch {
             getStreakScore()
 
@@ -130,8 +128,8 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
         println("currentTime $date")
         println("streakScore Onboarding date.dayOfMonth ${calendar.get(Calendar.DAY_OF_MONTH)}")
 
-        Log.e("WATER PERCENT", waterPercent.toString());
-            if (waterPercent < 100) {
+        Log.e("WATER PERCENT", waterPercent.toString())
+        if (waterPercent < 100) {
                 Utils.logIt("REWARD","Water Percent less than 100")
 
                 waterTime = currentTime.minute
@@ -159,14 +157,14 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
             viewModelScope.launch {
                 calculateWaterAmount()
             }
-            println("streakScore Onboarding streakScore ${streakScore}")
-            println("streakScore Onboarding waterTime ${waterTime}")
-            println("streakScore Onboarding waterTime ${streakDays}")
+            println("streakScore Onboarding streakScore $streakScore")
+            println("streakScore Onboarding waterTime $waterTime")
+            println("streakScore Onboarding waterTime $streakDays")
             println("streakScore Onboarding currentTime hour ${currentTime.hour}")
-            println("streakScore Onboarding streakDay ${streakDay}")
-            println("streakScore Onboarding waterAmount ${usedWaterAmount}")
-            println("streakScore Onboarding rewardDialog ${rewardDialog}")
-            println("streakScore Onboarding streakDay ${streakDay}")
+            println("streakScore Onboarding streakDay $streakDay")
+            println("streakScore Onboarding waterAmount $usedWaterAmount")
+            println("streakScore Onboarding rewardDialog $rewardDialog")
+            println("streakScore Onboarding streakDay $streakDay")
         waterStreak()
 
     }

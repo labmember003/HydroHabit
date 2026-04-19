@@ -77,7 +77,7 @@ import com.falcon.hydrohabit.R
 import com.falcon.hydrohabit.alarmSchedular.AlarmScheduler
 import com.falcon.hydrohabit.features.homescreen.HomeScreen
 import com.falcon.hydrohabit.features.profilescreen.SettingsScreen
-import com.falcon.hydrohabit.features.profilescreen.utils.profileData
+import com.falcon.hydrohabit.features.profilescreen.utils.ProfileData
 import com.falcon.hydrohabit.ui.theme.backgroundColor1
 import com.falcon.hydrohabit.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.ui.theme.fontFamilyLight
@@ -316,14 +316,15 @@ fun BottomBarHostingScreen(
             }
             composable(route = BottomNavScreens.SettingsScreen.route) {
                 SettingsScreen(
-                    profileData = profileData(
+                    profileData = ProfileData(
                         onNotificationChange = notificationsEnabled,
                         selectedIntervalIndex = selectedIntervalIndex,
                         wakeUpHour = wakeUpHour,
                         wakeUpMinute = wakeUpMinute,
                         bedHour = bedHour,
                         bedMinute = bedMinute,
-                        selectedSoundIndex = selectedSoundIndex
+                        selectedSoundIndex = selectedSoundIndex,
+                        customSoundUri = prefs.getString("custom_sound_uri", null)
                     ),
                     getNotificationChange = {
                         notificationsEnabled = it
@@ -350,6 +351,9 @@ fun BottomBarHostingScreen(
                     getSoundChange = {
                         selectedSoundIndex = it
                         prefs.edit { putInt("notification_sound_index", it) }
+                    },
+                    onCustomSoundPicked = { uri ->
+                        prefs.edit { putString("custom_sound_uri", uri) }
                     },
                     modifier = Modifier
                         .fillMaxSize()

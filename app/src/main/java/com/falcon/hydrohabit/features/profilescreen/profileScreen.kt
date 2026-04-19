@@ -3,6 +3,10 @@ package com.falcon.hydrohabit.features.profilescreen
 import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -52,7 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
 import com.falcon.hydrohabit.BuildConfig
-import com.falcon.hydrohabit.features.profilescreen.utils.profileData
+import com.falcon.hydrohabit.features.profilescreen.utils.ProfileData
 import com.falcon.hydrohabit.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.ui.theme.fontFamily
 import com.falcon.hydrohabit.ui.theme.fontFamilyBold
@@ -78,9 +82,10 @@ val soundOptions = listOf(
     "Cascade",
     "Splash",
     "System Default",
+    "Custom",
 )
 
-// Resource IDs for custom sounds (index 0-4), index 5 = system default (null)
+// Resource IDs for custom sounds (index 0-4), index 5 = system default (null), index 6 = custom URI
 fun getSoundResId(index: Int): Int? {
     return when (index) {
         0 -> com.falcon.hydrohabit.R.raw.water_drop_1
@@ -88,7 +93,7 @@ fun getSoundResId(index: Int): Int? {
         2 -> com.falcon.hydrohabit.R.raw.water_drop_3
         3 -> com.falcon.hydrohabit.R.raw.water_drop_4
         4 -> com.falcon.hydrohabit.R.raw.water_drop_5
-        else -> null // system default
+        else -> null // system default or custom
     }
 }
 
@@ -105,18 +110,30 @@ private fun formatTime(hour: Int, minute: Int = 0): String {
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    profileData: profileData,
+    profileData: ProfileData,
     getNotificationChange: (Boolean) -> Unit,
     getIntervalChange: (Int) -> Unit,
     getWakeUpHourChange: (Int, Int) -> Unit,
     getBedHourChange: (Int, Int) -> Unit,
     getSoundChange: (Int) -> Unit,
+    onCustomSoundPicked: (String) -> Unit,
 ) {
     val context = LocalContext.current
     var showIntervalDialog by remember { mutableStateOf(false) }
     var showWakeUpDialog by remember { mutableStateOf(false) }
     var showBedTimeDialog by remember { mutableStateOf(false) }
     var showSoundDialog by remember { mutableStateOf(false) }
+
+    val ringtoneLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result: androidx.activity.result.ActivityResult ->
+        val pickedUri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+        if (pickedUri != null) {
+            onCustomSoundPicked(pickedUri.toString())
+            getSoundChange(6)
+        }
+        showSoundDialog = false
+    }
 
     Column(
         modifier = modifier
@@ -214,9 +231,15 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(4.dp))
 
         // Notification Sound
+        val soundDisplayName = if (profileData.selectedSoundIndex == 6 && profileData.customSoundUri != null) {
+            val ringtone = RingtoneManager.getRingtone(context, Uri.parse(profileData.customSoundUri))
+            ringtone?.getTitle(context) ?: "Custom"
+        } else {
+            soundOptions[profileData.selectedSoundIndex]
+        }
         SettingsRow(
             title = "Notification Sound",
-            value = soundOptions[profileData.selectedSoundIndex],
+            value = soundDisplayName,
             onClick = { showSoundDialog = true }
         )
 
@@ -318,8 +341,21 @@ fun SettingsScreen(
             context = context,
             currentIndex = profileData.selectedSoundIndex,
             onSelect = { index ->
-                getSoundChange(index)
-                showSoundDialog = false
+                if (index == 6) {
+                    // Launch system ringtone picker for custom sound
+                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Notification Sound")
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                        if (profileData.customSoundUri != null) {
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(profileData.customSoundUri))
+                        }
+                    }
+                    ringtoneLauncher.launch(intent)
+                } else {
+                    getSoundChange(index)
+                    showSoundDialog = false
+                }
             },
             onDismiss = { showSoundDialog = false }
         )
@@ -574,7 +610,7 @@ private fun SoundPickerDialog(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = if (index < 5) "🔔 " else "📱 ",
+                            text = if (index < 5) "🔔 " else if (index == 5) "📱 " else "🎵 ",
                             fontSize = 16.sp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -749,7 +785,7 @@ fun PreviewSettingsScreen() {
                     colors = mutableListOf(waterColorMeter.copy(alpha = 0.1f), backgroundColor2)
                 )
             ),
-        profileData = profileData(
+        profileData = ProfileData(
             onNotificationChange = false,
             selectedIntervalIndex = 1,
             wakeUpHour = 8,
@@ -760,6 +796,7 @@ fun PreviewSettingsScreen() {
         getIntervalChange = {},
         getWakeUpHourChange = { _, _ -> },
         getBedHourChange = { _, _ -> },
-        getSoundChange = {}
+        getSoundChange = {},
+        onCustomSoundPicked = {}
     )
 }
