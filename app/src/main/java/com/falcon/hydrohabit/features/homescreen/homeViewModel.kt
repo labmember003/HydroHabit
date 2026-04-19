@@ -22,8 +22,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Calendar
 
-
-
 class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: Context) : ViewModel() {
 
     var usedWaterAmount by mutableIntStateOf(0)
@@ -129,19 +127,10 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
         val calendar = Calendar.getInstance()
         val currentTime = LocalTime.now()
         val date: LocalDate = LocalDate.now()
-        println("currentTime ${date}")
-
-//
-//        if (currentTime.minute != waterTime) {
-//            canAddWater = true
-//        } else {
-//            canAddWater = false
-//        }
+        println("currentTime $date")
         println("streakScore Onboarding date.dayOfMonth ${calendar.get(Calendar.DAY_OF_MONTH)}")
 
         Log.e("WATER PERCENT", waterPercent.toString());
-//        if (canAddWater) {
-
             if (waterPercent < 100) {
                 Utils.logIt("REWARD","Water Percent less than 100")
 
@@ -178,7 +167,6 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
             println("streakScore Onboarding waterAmount ${usedWaterAmount}")
             println("streakScore Onboarding rewardDialog ${rewardDialog}")
             println("streakScore Onboarding streakDay ${streakDay}")
-//        }
         waterStreak()
 
     }
@@ -286,7 +274,4 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: C
             in 95..100 -> onProgress = "Amazing"
         }
     }
-
-
-
 }
