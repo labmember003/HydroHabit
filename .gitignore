@@ -1,18 +1,43 @@
 *.iml
 .gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.idea
 local.properties
+.DS_Store
+.cxx
+.externalNativeBuild
+/captures
+
+# Build outputs (all modules)
+**/build/
+build/
+
+# Kotlin metadata & caches
+.kotlin/
+**/.kotlin/
+
+# Binary artifacts
+*.klib
+*.class
+*.dex
+*.apk
+*.ap_
+*.aab
+*.so
+*.hprof
+
+# Gradle wrapper jar is fine to keep
+!gradle/wrapper/gradle-wrapper.jar
+
 # Firebase configuration files
 google-services.json
 GoogleService-Info.plist
+
+# OS files
+Thumbs.db
+*.swp
+*~
+
+# Xcode user data
+xcuserdata/
+*.xcuserstate
+
