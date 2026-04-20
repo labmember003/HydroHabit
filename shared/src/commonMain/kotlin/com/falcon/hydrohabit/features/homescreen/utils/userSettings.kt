@@ -16,3 +16,4 @@ data class UserValues(
     var avgIntake:String ="",
     var bestStreak:String=""
 )
+

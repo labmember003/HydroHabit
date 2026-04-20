@@ -6,3 +6,4 @@ sealed class Result<out T> {
     data class Failure<T>(var exception:T):Result<T>()
     data object Loading:Result<Nothing>()
 }
+

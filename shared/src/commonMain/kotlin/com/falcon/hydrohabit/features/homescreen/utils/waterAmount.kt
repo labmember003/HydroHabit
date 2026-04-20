@@ -8,3 +8,4 @@ data class WaterAmount(
     var onTotalWater:Int=0,
     var onWaterDay:String = ""
 )
+
