@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.falcon.hydrohabit.R
 import com.falcon.hydrohabit.alarmSchedular.AlarmScheduler
-import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepository
+import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.utils.Utils
 import com.falcon.hydrohabit.features.homescreen.utils.StreakClass
 import com.falcon.hydrohabit.features.homescreen.utils.WaterAmount
@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Calendar
 
-class HomeViewModel(private val onboardingRepo: OnboardingRepository, context: Context) : ViewModel() {
+class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, context: Context) : ViewModel() {
 
     var usedWaterAmount by mutableIntStateOf(0)
         private set

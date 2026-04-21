@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepository
+import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.features.calendarscreen.utils.WaterGoals
@@ -17,7 +17,7 @@ import com.falcon.hydrohabit.features.homescreen.utils.StreakClass
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
-class CalendarViewModel(private val onboardingRepo: OnboardingRepository):ViewModel() {
+class CalendarViewModel(private val onboardingRepo: OnboardingRepositoryContract):ViewModel() {
 
     var onMonth by mutableStateOf("")
         private set

@@ -8,14 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepository
+import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.features.homescreen.utils.UserSettings
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.sqrt
 import androidx.core.content.edit
 
-class OnboardingViewModel(private val onboardingRepo: OnboardingRepository, private val sharedPreferences: SharedPreferences) : ViewModel() {
+class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContract, private val sharedPreferences: SharedPreferences) : ViewModel() {
 
     var onNameValue by mutableStateOf("")
         private set

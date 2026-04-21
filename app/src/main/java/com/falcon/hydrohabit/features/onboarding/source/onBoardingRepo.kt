@@ -16,7 +16,7 @@ import com.falcon.hydrohabit.model.storage_utils.SerializerUserValues
 import kotlinx.coroutines.flow.Flow
 
 
-class OnboardingRepository(context: Context) {
+class OnboardingRepository(context: Context) : OnboardingRepositoryContract {
     private val Context.streakStore: DataStore<StreakClass> by dataStore(
         fileName = "streak_store.json",
         serializer = SerializerStreak,
@@ -41,7 +41,7 @@ class OnboardingRepository(context: Context) {
 
     var userValues:DataStore<UserValues> = context.userValues
 
-    suspend fun updateUserValues(avgIntake:String,bestStreak:String){
+    override suspend fun updateUserValues(avgIntake:String,bestStreak:String){
         userValues.updateData {
             it.copy(
                 bestStreak = bestStreak,
@@ -49,10 +49,10 @@ class OnboardingRepository(context: Context) {
             )
         }
     }
-    fun getUserValues():Flow<UserValues> = userValues.data
+    override fun getUserValues():Flow<UserValues> = userValues.data
 
     var streakScore:DataStore<StreakClass> = context.streakStore
-     suspend fun updateStreak(streak:Int,streakDays:List<Int>,streakDay:String,waterTime:String,perks: List<Int>){
+     override suspend fun updateStreak(streak:Int,streakDays:List<Int>,streakDay:String,waterTime:String,perks: List<Int>){
         streakScore.updateData {
             it.copy(
                 streak =streak,
@@ -64,11 +64,11 @@ class OnboardingRepository(context: Context) {
         }
          println("streakScore Onboarding updateStreak ${perks}")
      }
-     fun getStreak():Flow<StreakClass> = streakScore.data
+     override fun getStreak():Flow<StreakClass> = streakScore.data
 
 
     var streakMonthScore:DataStore<StreakMonthClass> = context.streakStoreMonth
-    suspend fun updateStreakMonth(streakDay:Int,streakMonth:Int,streakYear:Int){
+    override suspend fun updateStreakMonth(streakDay:Int,streakMonth:Int,streakYear:Int){
         streakMonthScore.updateData {
             it.copy(
                 streakDay = streakDay,
@@ -80,10 +80,10 @@ class OnboardingRepository(context: Context) {
 
 
     }
-    fun getStreakMonth():Flow<StreakMonthClass> = streakMonthScore.data
+    override fun getStreakMonth():Flow<StreakMonthClass> = streakMonthScore.data
 
     var userSettingsStore:DataStore<UserSettings> = context.userSettingsStore
-    suspend fun updateUserSettingsStore(userHeight:Int,userWaterIntake:Int,userName:String,userWeight:Int,onBoardingCompleted:Boolean){
+    override suspend fun updateUserSettingsStore(userHeight:Int,userWaterIntake:Int,userName:String,userWeight:Int,onBoardingCompleted:Boolean){
         userSettingsStore.updateData {
            it.copy(
                userHeight = userHeight,
@@ -98,10 +98,10 @@ class OnboardingRepository(context: Context) {
 
 
     }
-    fun getUserSettingsStore():Flow<UserSettings> = userSettingsStore.data
+    override fun getUserSettingsStore():Flow<UserSettings> = userSettingsStore.data
 
     var waterAmount:DataStore<WaterAmount> = context.waterAmount
-    suspend fun updateWaterAmount(onUsedWater:Int,onTotalWaterAmount: Int,onWaterDay:String){
+    override suspend fun updateWaterAmount(onUsedWater:Int,onTotalWaterAmount: Int,onWaterDay:String){
         waterAmount.updateData {
             it.copy(
                 onUsedWater= onUsedWater,
@@ -113,9 +113,9 @@ class OnboardingRepository(context: Context) {
 
 
     }
-    fun removeWaterAmount(){
+    override fun removeWaterAmount(){
 
     }
-    fun getWaterAmount():Flow<WaterAmount> = waterAmount.data
+    override fun getWaterAmount():Flow<WaterAmount> = waterAmount.data
 
 }

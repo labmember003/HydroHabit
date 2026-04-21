@@ -6,6 +6,7 @@ import com.falcon.hydrohabit.features.calendarscreen.CalendarViewModel
 import com.falcon.hydrohabit.features.homescreen.HomeViewModel
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepository
+import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidApplication
@@ -26,7 +27,7 @@ val DIModule = module {
         androidContext().getSharedPreferences("prefs", Context.MODE_PRIVATE)
     }
 
-    single<OnboardingRepository> {
+    single<OnboardingRepositoryContract> {
         OnboardingRepository(get())
     }
 
