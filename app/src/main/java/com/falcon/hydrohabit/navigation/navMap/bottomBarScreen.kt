@@ -1,6 +1,13 @@
 package com.falcon.hydrohabit.navigation.navMap
 
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
@@ -42,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -50,6 +58,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,7 +97,8 @@ import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.navigation.navUtils.BottomNavScreens
-import androidx.core.content.edit
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Notifications
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,6 +144,11 @@ fun BottomBarHostingScreen(
     var notificationsEnabled by remember {
         mutableStateOf(prefs.getBoolean("notifications_enabled", false))
     }
+
+    // Notification permission state
+    var showNotificationPermissionDialog by remember { mutableStateOf(false) }
+    var pendingNotificationToggle by remember { mutableStateOf(false) }
+
     var selectedIntervalIndex by remember {
         mutableIntStateOf(prefs.getInt("notification_interval_index", 1))
     }
@@ -150,6 +169,87 @@ fun BottomBarHostingScreen(
     }
     var customSoundUri by remember {
         mutableStateOf(prefs.getString("custom_sound_uri", null))
+    }
+
+    fun hasNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else true
+    }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            notificationsEnabled = true
+            prefs.edit { putBoolean("notifications_enabled", true) }
+            val intervalMinutes = com.falcon.hydrohabit.features.profilescreen.intervalMinutesMap[selectedIntervalIndex]
+            alarmScheduler.scheduleRepeating(intervalMinutes, wakeUpHour, wakeUpMinute, bedHour, bedMinute)
+        } else {
+            // Permission denied — show dialog to go to settings
+            showNotificationPermissionDialog = true
+            // Revert the toggle
+            if (pendingNotificationToggle) {
+                notificationsEnabled = false
+                prefs.edit { putBoolean("notifications_enabled", false) }
+                pendingNotificationToggle = false
+            }
+        }
+    }
+
+    // Check notification permission on every resume
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (hasNotificationPermission()) {
+                    // Permission granted (maybe from settings) — reschedule if enabled
+                    if (notificationsEnabled) {
+                        val intervalMinutes = com.falcon.hydrohabit.features.profilescreen.intervalMinutesMap[selectedIntervalIndex]
+                        alarmScheduler.scheduleRepeating(intervalMinutes, wakeUpHour, wakeUpMinute, bedHour, bedMinute)
+                    }
+                } else {
+                    // No permission — prompt user
+                    showNotificationPermissionDialog = true
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Dialog to redirect user to app settings for notification permission
+    if (showNotificationPermissionDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showNotificationPermissionDialog = false },
+            containerColor = backgroundColor1,
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.Notifications,
+                    contentDescription = "Notifications",
+                    tint = waterColor
+                )
+            },
+            title = { Text("Notification Permission Required") },
+            text = { Text("Notifications are essential for reminding you to drink water. Please enable notification permission in app settings.") },
+            confirmButton = {
+                Button(onClick = {
+                    showNotificationPermissionDialog = false
+                    val intent = Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", context.packageName, null)
+                    )
+                    context.startActivity(intent)
+                }) {
+                    Text("Open Settings")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showNotificationPermissionDialog = false }) {
+                    Text("Later")
+                }
+            }
+        )
     }
 
     // Helper to schedule or cancel notifications based on current settings
@@ -329,10 +429,21 @@ fun BottomBarHostingScreen(
                         selectedSoundIndex = selectedSoundIndex,
                         customSoundUri = customSoundUri
                     ),
-                    getNotificationChange = {
-                        notificationsEnabled = it
-                        prefs.edit { putBoolean("notifications_enabled", it) }
-                        rescheduleNotifications()
+                    getNotificationChange = { enabled ->
+                        if (enabled) {
+                            if (hasNotificationPermission()) {
+                                notificationsEnabled = true
+                                prefs.edit { putBoolean("notifications_enabled", true) }
+                                rescheduleNotifications()
+                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                pendingNotificationToggle = true
+                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        } else {
+                            notificationsEnabled = false
+                            prefs.edit { putBoolean("notifications_enabled", false) }
+                            rescheduleNotifications()
+                        }
                     },
                     getIntervalChange = {
                         selectedIntervalIndex = it
@@ -672,7 +783,7 @@ fun BottomBarLayout(
     navScreens: List<BottomNavScreens>,
     getHome: (Boolean) -> Unit
 ) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState();
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     BottomAppBar(
         modifier = Modifier
