@@ -140,8 +140,8 @@ fun SettingsScreen(
             putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
             putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Notification Sound")
             putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
-            if (profileData.customSoundUri != null) {
-                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, profileData.customSoundUri.toUri())
+            profileData.customSoundUri?.let { uri ->
+                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, uri.toUri())
             }
         }
         ringtoneLauncher.launch(intent)
@@ -243,9 +243,14 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(4.dp))
 
         // Notification Sound
-        val soundDisplayName = if (profileData.selectedSoundIndex == 6 && profileData.customSoundUri != null) {
-            val ringtone = RingtoneManager.getRingtone(context, profileData.customSoundUri.toUri())
-            ringtone?.getTitle(context) ?: "Custom"
+        val soundDisplayName = if (profileData.selectedSoundIndex == 6) {
+            val uri = profileData.customSoundUri
+            if (uri != null) {
+                val ringtone = RingtoneManager.getRingtone(context, uri.toUri())
+                ringtone?.getTitle(context) ?: "Custom"
+            } else {
+                soundOptions[profileData.selectedSoundIndex]
+            }
         } else {
             soundOptions[profileData.selectedSoundIndex]
         }
