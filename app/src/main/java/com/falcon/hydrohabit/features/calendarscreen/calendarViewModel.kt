@@ -10,12 +10,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.features.calendarscreen.usecase.calculateBestStreak
+import com.falcon.hydrohabit.features.calendarscreen.usecase.CalendarInfoProvider
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.features.calendarscreen.utils.WaterGoals
 import com.falcon.hydrohabit.features.homescreen.utils.StreakClass
 import kotlinx.coroutines.launch
-import java.util.Calendar
 
 class CalendarViewModel(private val onboardingRepo: OnboardingRepositoryContract):ViewModel() {
 
@@ -123,12 +123,9 @@ class CalendarViewModel(private val onboardingRepo: OnboardingRepositoryContract
 
     fun getCalendarValues(){
 
-        // Getting Month value for the calendar
-        val calendar = Calendar.getInstance()
-        val monthIndex = calendar.get(Calendar.MONTH)
-        val months = arrayOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
-        onMonth =  months[monthIndex]
-        onDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        // Getting Month value for the calendar using shared KMM CalendarInfoProvider
+        onMonth = CalendarInfoProvider.getCurrentMonthName()
+        onDays = CalendarInfoProvider.getDaysInCurrentMonth()
         calendarList.clear()
         for(i in 0 until 5){
             val rowList = mutableListOf<Color>()

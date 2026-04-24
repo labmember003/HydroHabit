@@ -28,6 +28,9 @@ kotlin {
             // moko-permissions for cross-platform permission handling
             api("dev.icerock.moko:permissions:0.18.0")
             api("dev.icerock.moko:permissions-compose:0.18.0")
+            // Multiplatform DataStore (okio-based)
+            api("androidx.datastore:datastore-core-okio:1.1.0")
+            implementation("com.squareup.okio:okio:3.9.0")
         }
 
         androidMain.dependencies {

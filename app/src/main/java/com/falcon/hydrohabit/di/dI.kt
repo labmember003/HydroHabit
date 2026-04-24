@@ -5,8 +5,11 @@ import android.content.SharedPreferences
 import com.falcon.hydrohabit.features.calendarscreen.CalendarViewModel
 import com.falcon.hydrohabit.features.homescreen.HomeViewModel
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
-import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepository
+import com.falcon.hydrohabit.features.onboarding.source.SharedOnboardingRepository
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
+import com.falcon.hydrohabit.shared.AndroidNotificationPermissionHandler
+import com.falcon.hydrohabit.shared.NotificationPermissionHandler
+import dev.icerock.moko.permissions.PermissionsController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidApplication
@@ -28,7 +31,16 @@ val DIModule = module {
     }
 
     single<OnboardingRepositoryContract> {
-        OnboardingRepository(get())
+        SharedOnboardingRepository(context = androidContext())
+    }
+
+    // moko-permissions controller (bind to application context for now)
+    single<PermissionsController> {
+        PermissionsController(applicationContext = androidApplication())
+    }
+
+    single<NotificationPermissionHandler> {
+        AndroidNotificationPermissionHandler(get())
     }
 
     viewModel { OnboardingViewModel(get(),get()) }

@@ -16,6 +16,11 @@ import com.falcon.hydrohabit.model.storage_utils.SerializerUserValues
 import kotlinx.coroutines.flow.Flow
 
 
+/**
+ * @deprecated Replaced by SharedOnboardingRepository in shared module.
+ * Kept temporarily for rollback safety — remove after verified release.
+ */
+@Deprecated("Replaced by SharedOnboardingRepository — remove after verified release")
 class OnboardingRepository(context: Context) : OnboardingRepositoryContract {
     private val Context.streakStore: DataStore<StreakClass> by dataStore(
         fileName = "streak_store.json",

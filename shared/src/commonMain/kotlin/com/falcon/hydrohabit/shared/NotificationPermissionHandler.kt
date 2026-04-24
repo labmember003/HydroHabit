@@ -19,6 +19,6 @@ interface NotificationPermissionHandler {
     /**
      * Check if notification permission is currently granted.
      */
-    fun isNotificationPermissionGranted(): Boolean
+    suspend fun isNotificationPermissionGranted(): Boolean
 }
 
