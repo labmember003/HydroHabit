@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -59,7 +58,7 @@ fun OnboardingNotifications(
     val prefs = remember { context.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE) }
     val permissionLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
-            Log.e("Notification Permission: ", it.toString())
+            println("Notification Permission: $it")
             getPermissionDenied(it)
             if (it) {
                 prefs.edit { putBoolean("notifications_enabled", true) }
@@ -74,7 +73,7 @@ fun OnboardingNotifications(
             getDismissButton = {
                 showPermissionDialog = false
                 getAllow()
-                Log.e("DISMISS BUTTON", "Dismiss")
+                println("DISMISS BUTTON: Dismiss")
             },
             getConfirmButton = {
                val intent =  Intent(
@@ -84,7 +83,7 @@ fun OnboardingNotifications(
                     )
                 )
                 context.startActivity(intent)
-                Log.e("CONFIRM BUTTON", "Confirm")
+                println("CONFIRM BUTTON: Confirm")
             },
             getAppSettings = {
               val intent =   Intent(
@@ -94,7 +93,7 @@ fun OnboardingNotifications(
                     )
                 )
                 context.startActivity(intent)
-                Log.e("GET TO APP SETTINGS", "App Settings")
+                println("GET TO APP SETTINGS: App Settings")
             },
             onPermissionTitle = "Notification Permission",
             onPermissionText = "It seems you permanently denied Notification Permission. Notifications are necessary to remind of your water breaks. You can go into settings to grant it",

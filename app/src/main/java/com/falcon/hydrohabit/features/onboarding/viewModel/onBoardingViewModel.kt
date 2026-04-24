@@ -1,7 +1,6 @@
 package com.falcon.hydrohabit.features.onboarding.viewModel
 
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -148,9 +147,9 @@ class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContra
         viewModelScope.launch {
             calculateWaterAmount()
         }
-        Log.d("onWaterAmount Onboarding", onWaterAmount.toString())
+        println("onWaterAmount Onboarding: ${onWaterAmount}")
         TWI = onWaterAmount.toDouble() / 1000
-        Log.d("TWI Onboarding", "%.2f".format(TWI).toDouble().toString())
+        println("TWI Onboarding: ${"%.2f".format(TWI).toDouble()}")
     }
 
     // Update the water Amount in database

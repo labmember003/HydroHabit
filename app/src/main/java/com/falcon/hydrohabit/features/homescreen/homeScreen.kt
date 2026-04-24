@@ -1,6 +1,5 @@
 package com.falcon.hydrohabit.features.homescreen
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -92,7 +91,7 @@ fun HomeScreen(
 
     LaunchedEffect(showBottombar){
         getBottomBar(showBottombar)
-        Log.d("SCroll","Scrolled FUnctoin executed")
+        println("SCroll: Scrolled FUnctoin executed")
     }
 
 

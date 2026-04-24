@@ -1,7 +1,6 @@
 package com.falcon.hydrohabit.features.homescreen
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -14,7 +13,7 @@ import com.falcon.hydrohabit.alarmSchedular.AlarmScheduler
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.features.homescreen.usecase.getGreeting
 import com.falcon.hydrohabit.features.homescreen.usecase.getStreakMessage
-import com.falcon.hydrohabit.utils.Utils
+import com.falcon.hydrohabit.features.homescreen.usecase.calculateWaterPercent
 import com.falcon.hydrohabit.features.homescreen.utils.StreakClass
 import com.falcon.hydrohabit.features.homescreen.utils.WaterAmount
 import com.falcon.hydrohabit.model.water_reminder.WaterReminder
@@ -128,17 +127,17 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
         println("currentTime $date")
         println("streakScore Onboarding date.dayOfMonth ${calendar.get(Calendar.DAY_OF_MONTH)}")
 
-        Log.e("WATER PERCENT", waterPercent.toString())
+        println("WATER PERCENT: ${waterPercent}")
         if (waterPercent < 100) {
-                Utils.logIt("REWARD","Water Percent less than 100")
+                println("REWARD: Water Percent less than 100")
 
                 waterTime = currentTime.minute
                 usedWaterAmount += waterUpdate
-                waterPercent = usedWaterAmount * 100 / totalWaterAmount
+                waterPercent = calculateWaterPercent(usedWaterAmount, totalWaterAmount)
 
             } else if (waterPercent>=100) {
                 rewardDialog = true
-                Utils.logIt("REWARD","Water Percent 100")
+                println("REWARD: Water Percent 100")
                 if (date.toString() != streakDay) {
                     streakScore++
                     streakDays.addAll(streakDays)
@@ -150,7 +149,7 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
                 }
                 streakDay = date.toString()
             }else{
-                Utils.logIt("REWARD","Water Percent equal to 100")
+                println("REWARD: Water Percent equal to 100")
                 waterPercent = 100
             }
 
@@ -211,12 +210,7 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
             }
 
             if (it.onUsedWater > 0) {
-                if (it.onUsedWater * 100 / it.onTotalWater <= 100) {
-                    waterPercent = it.onUsedWater * 100 / it.onTotalWater
-
-                } else {
-                    waterPercent = 100
-                }
+                waterPercent = calculateWaterPercent(it.onUsedWater, it.onTotalWater)
             }
             if(date.toString()!=it.onWaterDay){
                 usedWaterAmount = 0

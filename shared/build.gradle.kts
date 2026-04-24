@@ -25,6 +25,9 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
             api("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            // moko-permissions for cross-platform permission handling
+            api("dev.icerock.moko:permissions:0.18.0")
+            api("dev.icerock.moko:permissions-compose:0.18.0")
         }
 
         androidMain.dependencies {

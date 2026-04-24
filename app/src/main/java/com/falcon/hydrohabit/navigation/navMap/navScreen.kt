@@ -1,7 +1,6 @@
 package com.falcon.hydrohabit.navigation.navMap
 
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,10 +42,7 @@ fun NavScreen(
             BottomBarHostingScreen(
                 getUpdateTotalWaterTrackingAmount = {
                     OnboardingViewModel.updateOnboardingWaterAmount(it)
-                    Log.d(
-                        "totalWaterAmount OnboardingViewModel",
-                        homeViewModel.totalWaterAmount.toString()
-                    )
+                    println("totalWaterAmount OnboardingViewModel: ${homeViewModel.totalWaterAmount}")
                 },
                 onWaterTrackingResourceAmount = homeViewModel.usedWaterAmount,
                 onTotalWaterTrackingResourceAmount = homeViewModel.totalWaterAmount,

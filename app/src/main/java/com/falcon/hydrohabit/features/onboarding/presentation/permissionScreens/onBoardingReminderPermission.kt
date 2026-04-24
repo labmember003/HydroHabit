@@ -3,7 +3,6 @@ package com.falcon.hydrohabit.features.onboarding.presentation.permissionScreens
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,11 +65,11 @@ fun OnboardingReminder(
             getDismissButton = {
                 showOverlayReminderDialog = false
                 getAllow()
-                Log.e("DISMISS BUTTON", "Dismiss")
+                println("DISMISS BUTTON: Dismiss")
             },
             getConfirmButton = {
                 getAllow()
-                Log.e("CONFIRM BUTTON", "Confirm")
+                println("CONFIRM BUTTON: Confirm")
             },
             getAppSettings = {
                 if (!Settings.canDrawOverlays(context)) {
@@ -82,7 +81,7 @@ fun OnboardingReminder(
                 }else{
                     getAllow()
                 }
-                Log.e("GET TO APP SETTINGS", "App Settings")
+                println("GET TO APP SETTINGS: App Settings")
             },
             onPermissionTitle = "Overlay Permission",
             onPermissionText = "Please provide this permission to continue using the water drinking Reminder feature.",

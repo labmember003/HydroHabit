@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -271,10 +270,7 @@ fun BottomBarHostingScreen(
     val isOnHome = currentRoute == BottomNavScreens.HomeScreen.route
 
     LaunchedEffect(Unit) {
-        Log.d(
-            "onTotalWaterTrackingResourceAmount Onboarding",
-            onTotalWaterTrackingResourceAmount.toString()
-        )
+        println("onTotalWaterTrackingResourceAmount Onboarding: $onTotalWaterTrackingResourceAmount")
         getUpdateTotalWaterTrackingAmount(onTotalWaterTrackingResourceAmount)
         getGreeting()
         // Schedule notifications on app startup based on saved settings
@@ -304,7 +300,7 @@ fun BottomBarHostingScreen(
             }
         },
         bottomBar = {
-            Log.d("SCROLL", showBottomBar.toString())
+            println("SCROLL: $showBottomBar")
             AnimatedVisibility(visible = !showBottomBar, enter = fadeIn(), exit = fadeOut()) {
                 BottomBarLayout(navController, navScreens = navItems, getHome = {
                     onHome = it
@@ -826,7 +822,7 @@ fun BottomBarLayout(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Log.d("Navigation", bottomData.route)
+                            println("Navigation: ${bottomData.route}")
                             Icon(
                                 imageVector = ImageVector.vectorResource(bottomData.icon),
                                 contentDescription = bottomData.route,

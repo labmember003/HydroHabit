@@ -5,3 +5,4 @@ enum class NavState {
     Success,
     Failure
 }
+

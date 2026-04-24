@@ -1,6 +1,5 @@
 package com.falcon.hydrohabit.features.calendarscreen
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -93,8 +92,8 @@ class CalendarViewModel(private val onboardingRepo: OnboardingRepositoryContract
     private suspend fun calculateUserValues(){
         bestStreak = calculateBestStreak(currentBest = bestStreak, currentStreak = onStreakDays)
 
-        Log.e("User Settings:==> BestStreak ", bestStreak.toString())
-        Log.e("User Settings:==> onStreakDays ", onStreakDays.toString())
+        println("User Settings:==> BestStreak ${bestStreak}")
+        println("User Settings:==> onStreakDays ${onStreakDays}")
         onboardingRepo.updateUserValues(avgIntake ="1000",bestStreak = bestStreak.toString() )
     }
 
@@ -107,7 +106,7 @@ class CalendarViewModel(private val onboardingRepo: OnboardingRepositoryContract
                 bestStreak = it.bestStreak.toInt()
             }
 
-            Log.e("User Settings:==> BestStreak ", bestStreak.toString())
+            println("User Settings:==> BestStreak ${bestStreak}")
 
         }
     }
