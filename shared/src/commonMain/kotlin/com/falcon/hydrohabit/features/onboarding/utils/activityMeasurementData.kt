@@ -5,3 +5,4 @@ data class activityMeasurementData(
     val onErrorText: String,
     val onActivityOutcome:Int
 )
+

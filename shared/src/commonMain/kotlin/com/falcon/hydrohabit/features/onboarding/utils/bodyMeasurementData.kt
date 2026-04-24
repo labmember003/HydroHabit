@@ -8,3 +8,4 @@ data class BodyMeasurementData(
     val onWeightError: String,
     val onHeightError: String
 )
+

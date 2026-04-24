@@ -9,10 +9,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
+import com.falcon.hydrohabit.features.onboarding.usecase.WaterIntakeCalculator
 import com.falcon.hydrohabit.features.homescreen.utils.UserSettings
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import kotlin.math.sqrt
 import androidx.core.content.edit
 
 class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContract, private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -139,34 +139,17 @@ class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContra
     }
 
     fun calculateWaterIntake() {
-        // Calculate BSA using the Mosteller formula
-        BSA = sqrt(onHeightValue.toInt().times(onWeightValue.toDouble() / 3600)).toInt()
+        onWaterAmount = WaterIntakeCalculator.calculateWaterIntake(
+            heightCm = onHeightValue.toInt(),
+            weightKg = onWeightValue.toInt(),
+            activityLevel = activityLevel ?: 0
+        )
 
-        // Calculate BWI using a base factor of 35 ml per kg of body weight
-        BWI = onWeightValue.toInt().times(33)
-
-        // Adjust BWI based on BSA
-        val BWI_adjusted = BWI * BSA
-
-        // Calculate TWI by adjusting BWI for activity level
-        TWI = BWI_adjusted + (BWI_adjusted.times(activityLevel ?: 0) / 100).toDouble()
-        Log.d("TWI Onboarding", TWI.toString())
-        // Adjust TWI to reasonable limits
-        TWI = when {
-            TWI > 3700 -> 3700.0
-            TWI > 3000 && TWI < 3500 -> 3500.0
-            TWI > 2500 && TWI < 3000 -> 3000.0
-            TWI > 2000 && TWI < 2500 -> 2500.0
-            TWI < 2000 -> 2000.0
-            else -> "%.2f".format(TWI).toDouble()
-        }
-
-        onWaterAmount = TWI.toInt()
         viewModelScope.launch {
             calculateWaterAmount()
         }
         Log.d("onWaterAmount Onboarding", onWaterAmount.toString())
-        TWI /= 1000
+        TWI = onWaterAmount.toDouble() / 1000
         Log.d("TWI Onboarding", "%.2f".format(TWI).toDouble().toString())
     }
 

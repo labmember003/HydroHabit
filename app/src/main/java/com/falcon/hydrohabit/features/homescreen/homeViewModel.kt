@@ -12,13 +12,19 @@ import androidx.lifecycle.viewModelScope
 import com.falcon.hydrohabit.R
 import com.falcon.hydrohabit.alarmSchedular.AlarmScheduler
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
+import com.falcon.hydrohabit.features.homescreen.usecase.getGreeting
+import com.falcon.hydrohabit.features.homescreen.usecase.getStreakMessage
 import com.falcon.hydrohabit.utils.Utils
 import com.falcon.hydrohabit.features.homescreen.utils.StreakClass
 import com.falcon.hydrohabit.features.homescreen.utils.WaterAmount
 import com.falcon.hydrohabit.model.water_reminder.WaterReminder
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Calendar
 
@@ -89,13 +95,7 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
     fun getGreeting() {
         val calendar = Calendar.getInstance()
         val timeOfDay = calendar.get(Calendar.HOUR_OF_DAY)
-
-        onTime = when (timeOfDay) {
-            in 0..11 -> "Good Morning"
-            in 12..16 -> "Good Afternoon"
-            in 17..20 -> "Good Evening"
-            else -> "Good Night"
-        }
+        onTime = getGreeting(timeOfDay)
     }
 
     // Updates the perks in perk sheet
@@ -229,7 +229,10 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
     private fun createWaterReminders(context: Context, waterReminderMessage:String){
         val alarmScheduler = AlarmScheduler(context)
         val reminder: WaterReminder =
-            WaterReminder(time = LocalDateTime.now().plusHours(2), message = "Your water intake for today is ${waterReminderMessage} ml")
+            WaterReminder(
+                time = Clock.System.now().plus(2, DateTimeUnit.HOUR).toLocalDateTime(TimeZone.currentSystemDefault()),
+                message = "Your water intake for today is ${waterReminderMessage} ml"
+            )
         reminder.let {
             alarmScheduler.schedule(reminder)
         }
@@ -265,11 +268,6 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
 
     // Gives compliments according to percentage of water filled in the glacier
     fun waterStreak() {
-        when (waterPercent) {
-            in 0..30 -> onProgress = "Keep Going, You are doing Great"
-            in 30..50 -> onProgress = "You are half way through, keep it up"
-            in 80..95 -> onProgress = "You are almost there, keep it going "
-            in 95..100 -> onProgress = "Amazing"
-        }
+        onProgress = getStreakMessage(waterPercent)
     }
 }

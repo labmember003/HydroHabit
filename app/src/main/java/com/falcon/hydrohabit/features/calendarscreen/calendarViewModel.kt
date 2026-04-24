@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
+import com.falcon.hydrohabit.features.calendarscreen.usecase.calculateBestStreak
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.features.calendarscreen.utils.WaterGoals
@@ -90,13 +91,7 @@ class CalendarViewModel(private val onboardingRepo: OnboardingRepositoryContract
 
     }
     private suspend fun calculateUserValues(){
-        if(onStreakDays == null || onStreakDays == 0){
-            bestStreak =0
-        }else{
-            if (bestStreak<=onStreakDays){
-                bestStreak = onStreakDays
-            }
-        }
+        bestStreak = calculateBestStreak(currentBest = bestStreak, currentStreak = onStreakDays)
 
         Log.e("User Settings:==> BestStreak ", bestStreak.toString())
         Log.e("User Settings:==> onStreakDays ", onStreakDays.toString())

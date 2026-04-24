@@ -5,3 +5,4 @@ data class premiumData(
     val onLifeTimePrice: String,
     val onListOfPremiumBenefits: List<String>
 )
+
