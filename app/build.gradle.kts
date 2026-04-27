@@ -98,8 +98,7 @@ dependencies {
     ksp ("androidx.room:room-compiler:2.6.1")
     // Charts:
     implementation ("co.yml:ycharts:2.1.0")
-    // Datastore and Serialization:
-    implementation("androidx.datastore:datastore:1.1.0")
+    // Serialization:
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     // Firebase:
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))

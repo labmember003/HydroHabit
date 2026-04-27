@@ -23,9 +23,6 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
-import java.time.LocalDate
-import java.time.LocalTime
-import java.util.Calendar
 
 class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, context: Context) : ViewModel() {
 
@@ -92,9 +89,8 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
 
     // Gets greetings according to the time of day
     fun getGreeting() {
-        val calendar = Calendar.getInstance()
-        val timeOfDay = calendar.get(Calendar.HOUR_OF_DAY)
-        onTime = getGreeting(timeOfDay)
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        onTime = getGreeting(now.hour)
     }
 
     // Updates the perks in perk sheet
@@ -121,33 +117,33 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
     // Updates the water amount and streak scores
     fun fillWaterUpdate(waterUpdate: Int) {
 
-        val calendar = Calendar.getInstance()
-        val currentTime = LocalTime.now()
-        val date: LocalDate = LocalDate.now()
-        println("currentTime $date")
-        println("streakScore Onboarding date.dayOfMonth ${calendar.get(Calendar.DAY_OF_MONTH)}")
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        val dateStr = now.date.toString()
+        val dayOfMonth = now.dayOfMonth
+        println("currentTime $dateStr")
+        println("streakScore Onboarding date.dayOfMonth $dayOfMonth")
 
         println("WATER PERCENT: ${waterPercent}")
         if (waterPercent < 100) {
                 println("REWARD: Water Percent less than 100")
 
-                waterTime = currentTime.minute
+                waterTime = now.minute
                 usedWaterAmount += waterUpdate
                 waterPercent = calculateWaterPercent(usedWaterAmount, totalWaterAmount)
 
             } else if (waterPercent>=100) {
                 rewardDialog = true
                 println("REWARD: Water Percent 100")
-                if (date.toString() != streakDay) {
+                if (dateStr != streakDay) {
                     streakScore++
                     streakDays.addAll(streakDays)
-                    streakDays.add(calendar.get(Calendar.DAY_OF_MONTH) -1)
+                    streakDays.add(dayOfMonth - 1)
                     updatePerks()
                     viewModelScope.launch {
                         calculateStreakScore()
                     }
                 }
-                streakDay = date.toString()
+                streakDay = dateStr
             }else{
                 println("REWARD: Water Percent equal to 100")
                 waterPercent = 100
@@ -159,7 +155,7 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
             println("streakScore Onboarding streakScore $streakScore")
             println("streakScore Onboarding waterTime $waterTime")
             println("streakScore Onboarding waterTime $streakDays")
-            println("streakScore Onboarding currentTime hour ${currentTime.hour}")
+            println("streakScore Onboarding currentTime hour ${now.hour}")
             println("streakScore Onboarding streakDay $streakDay")
             println("streakScore Onboarding waterAmount $usedWaterAmount")
             println("streakScore Onboarding rewardDialog $rewardDialog")
@@ -170,13 +166,13 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
 
     // Update the water Amount in database
     private suspend fun calculateWaterAmount() {
-        val date = LocalDate.now()
+        val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         onboardingRepo.updateWaterAmount(
             onUsedWater = usedWaterAmount,
             onTotalWaterAmount = totalWaterAmount,
             onWaterDay = date.toString()
         )
-        println("Date onWaterDay ${date.toString()}")
+        println("Date onWaterDay $date")
 
     }
 
@@ -197,7 +193,7 @@ class HomeViewModel(private val onboardingRepo: OnboardingRepositoryContract, co
     // Tries to compare todays date versus previous water date. If the dates are different, the water amount becomes zero
     // It also calculates and updates the water percentage
     private suspend fun getWaterAmount(context: Context) {
-        val date = LocalDate.now()
+        val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         onboardingRepo.getWaterAmount().collect {
             println("Get Water Amount Home Viewmodel Function ${it}")
             _waterAmount = it

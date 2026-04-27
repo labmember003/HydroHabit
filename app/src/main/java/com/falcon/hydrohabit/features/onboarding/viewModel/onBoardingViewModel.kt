@@ -11,7 +11,9 @@ import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryCont
 import com.falcon.hydrohabit.features.onboarding.usecase.WaterIntakeCalculator
 import com.falcon.hydrohabit.features.homescreen.utils.UserSettings
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import androidx.core.content.edit
 
 class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContract, private val sharedPreferences: SharedPreferences) : ViewModel() {
@@ -154,7 +156,7 @@ class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContra
 
     // Update the water Amount in database
     private suspend fun calculateWaterAmount() {
-        val date = LocalDate.now()
+        val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         onboardingRepo.updateWaterAmount(
             onUsedWater = 0,
             onTotalWaterAmount = onWaterAmount,
