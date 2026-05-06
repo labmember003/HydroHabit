@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.falcon.hydrohabit.features.homescreen.HomeViewModel
-import com.falcon.hydrohabit.features.onboarding.source.AppPreferences
 import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
 import com.falcon.hydrohabit.navigation.navUtils.NavScreens
@@ -24,9 +23,11 @@ fun NavScreen(
 ) {
     val TAG = "NavScreen"
     val navController = rememberNavController()
-    val appPrefs by appPrefsRepo.preferencesFlow.collectAsState(initial = AppPreferences())
-    val isOnboardingCompleted = appPrefs.onboardingCompleted
-    val startDestination = if (isOnboardingCompleted) NavScreens.BottomNavHostingScreen.route
+
+    // cachedPreferences is a StateFlow started EAGERLY at app launch (during DI init).
+    // By the time this composable renders, the real disk value is already loaded — no flicker.
+    val appPrefs by appPrefsRepo.cachedPreferences.collectAsState()
+    val startDestination = if (appPrefs.onboardingCompleted) NavScreens.BottomNavHostingScreen.route
         else NavScreens.OnboardingNavHostingScreen.route
 
     NavHost(

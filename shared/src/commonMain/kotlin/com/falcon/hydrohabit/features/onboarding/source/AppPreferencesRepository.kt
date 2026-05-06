@@ -5,19 +5,28 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.okio.OkioStorage
 import com.falcon.hydrohabit.model.storage_utils.OkioSerializerAppPreferences
 import com.falcon.hydrohabit.model.storage_utils.dataStorePath
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import okio.FileSystem
 import okio.SYSTEM
 
 /**
  * KMM-compatible repository for app preferences (replaces Android SharedPreferences).
  *
- * Provides both Flow-based (reactive) and suspend (one-shot) access patterns.
+ * The [cachedPreferences] StateFlow is started EAGERLY at construction time,
+ * so the data is warmed up by the time any UI reads it — no flicker on launch.
  *
  * @param context platform context (Android Context on Android, null on iOS)
  */
 class AppPreferencesRepository(private val context: Any?) {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val prefsStore: DataStore<AppPreferences> = DataStoreFactory.create(
         storage = OkioStorage(FileSystem.SYSTEM, OkioSerializerAppPreferences) {
@@ -27,6 +36,13 @@ class AppPreferencesRepository(private val context: Any?) {
 
     /** Observe all preferences as a Flow */
     val preferencesFlow: Flow<AppPreferences> = prefsStore.data
+
+    /**
+     * Eagerly-cached StateFlow — starts reading from disk immediately on creation.
+     * By the time the first composable frame renders, .value is already the real data.
+     */
+    val cachedPreferences: StateFlow<AppPreferences> = prefsStore.data
+        .stateIn(scope, SharingStarted.Eagerly, AppPreferences())
 
     /** Read current snapshot (suspend — use sparingly) */
     suspend fun current(): AppPreferences = prefsStore.data.first()

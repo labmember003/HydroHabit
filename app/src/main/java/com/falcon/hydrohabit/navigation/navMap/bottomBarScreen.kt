@@ -148,7 +148,7 @@ fun BottomBarHostingScreen(
     val alarmScheduler = remember { AlarmScheduler(context) }
     val appPrefsRepo: AppPreferencesRepository = koinInject()
     val scope = rememberCoroutineScope()
-    val appPrefs by appPrefsRepo.preferencesFlow.collectAsState(initial = AppPreferences())
+    val appPrefs by appPrefsRepo.cachedPreferences.collectAsState()
 
     var notificationsEnabled by remember { mutableStateOf(appPrefs.notificationsEnabled) }
 
