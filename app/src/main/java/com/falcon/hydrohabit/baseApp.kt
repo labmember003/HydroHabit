@@ -1,11 +1,10 @@
 package com.falcon.hydrohabit
 
 import android.app.Application
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import com.falcon.hydrohabit.di.DIModule
-import com.falcon.hydrohabit.features.notifications.NotificationChannelService
+import com.falcon.hydrohabit.di.androidDIModule
+import com.falcon.hydrohabit.shared.di.sharedModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -17,7 +16,10 @@ class BaseAppHydroHabit:Application(){
         startKoin {
             androidLogger()
             androidContext(this@BaseAppHydroHabit)
-            modules(DIModule)
+            modules(
+                sharedModule(this@BaseAppHydroHabit), // KMM shared repos (pass Android context)
+                androidDIModule                       // Android-only (ViewModels, permissions, etc.)
+            )
         }
         createNotificationChannel()
     }

@@ -31,6 +31,8 @@ kotlin {
             // Multiplatform DataStore (okio-based)
             api("androidx.datastore:datastore-core-okio:1.1.0")
             implementation("com.squareup.okio:okio:3.9.0")
+            // Koin (DI) - multiplatform core
+            api("io.insert-koin:koin-core:3.5.4")
         }
 
         androidMain.dependencies {
