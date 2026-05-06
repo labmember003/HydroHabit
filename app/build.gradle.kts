@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.falcon.hydrohabit"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.falcon.hydrohabit"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -93,9 +93,6 @@ dependencies {
     //koin:
     implementation("io.insert-koin:koin-android:3.5.4-RC1")
     implementation ("io.insert-koin:koin-androidx-compose:3.5.3")
-    //Room Library:
-    implementation ("androidx.room:room-runtime:2.6.1")
-    ksp ("androidx.room:room-compiler:2.6.1")
     // Charts:
     implementation ("co.yml:ycharts:2.1.0")
     // Serialization:
