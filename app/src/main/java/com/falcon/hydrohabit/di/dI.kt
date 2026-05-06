@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.falcon.hydrohabit.features.calendarscreen.CalendarViewModel
 import com.falcon.hydrohabit.features.homescreen.HomeViewModel
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.source.SharedOnboardingRepository
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.shared.AndroidNotificationPermissionHandler
@@ -26,8 +27,14 @@ val DIModule = module {
     // Provide Default Dispatcher
     single<CoroutineDispatcher>(named("defaultDispatcher")) { Dispatchers.Default }
 
+    // Legacy SharedPreferences — kept temporarily for notification service (reads sound settings synchronously)
     single<SharedPreferences>{
         androidContext().getSharedPreferences("prefs", Context.MODE_PRIVATE)
+    }
+
+    // KMM-compatible app preferences (replaces most SharedPreferences usage)
+    single<AppPreferencesRepository> {
+        AppPreferencesRepository(context = androidContext())
     }
 
     single<OnboardingRepositoryContract> {
@@ -43,7 +50,7 @@ val DIModule = module {
         AndroidNotificationPermissionHandler(get())
     }
 
-    viewModel { OnboardingViewModel(get(),get()) }
+    viewModel { OnboardingViewModel(get(), get()) }
     viewModel { HomeViewModel(get(), androidApplication()) }
     viewModel { CalendarViewModel(get()) }
 

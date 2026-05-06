@@ -1,12 +1,12 @@
 package com.falcon.hydrohabit.features.onboarding.viewModel
 
-import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.features.onboarding.usecase.WaterIntakeCalculator
 import com.falcon.hydrohabit.features.homescreen.utils.UserSettings
@@ -14,9 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import androidx.core.content.edit
 
-class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContract, private val sharedPreferences: SharedPreferences) : ViewModel() {
+class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContract, private val appPrefsRepo: AppPreferencesRepository) : ViewModel() {
 
     var onNameValue by mutableStateOf("")
         private set
@@ -72,9 +71,9 @@ class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContra
     }
 
     fun saveSleepSchedule() {
-        sharedPreferences.edit {
-            putInt("wake_up_hour", wakeUpHour)
-            putInt("bed_hour", bedHour)
+        viewModelScope.launch {
+            appPrefsRepo.setWakeUpTime(wakeUpHour, 0)
+            appPrefsRepo.setBedTime(bedHour, 0)
         }
     }
 
@@ -177,9 +176,8 @@ class OnboardingViewModel(private val onboardingRepo: OnboardingRepositoryContra
                 userHeight = onHeightValue.toInt(),
                 onBoardingCompleted = onBoardingCompleted
             )
+            appPrefsRepo.setOnboardingCompleted(onBoardingCompleted)
         }
-
-        sharedPreferences.edit{ putBoolean("onBoardingCompleted", onBoardingCompleted) }
 
         println("streakScore Onboarding UpdateUserSettings ")
 

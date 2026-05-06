@@ -1,15 +1,14 @@
 package com.falcon.hydrohabit.navigation.navMap
 
-import android.content.SharedPreferences
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.falcon.hydrohabit.features.homescreen.HomeViewModel
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferences
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.viewModel.OnboardingViewModel
 import com.falcon.hydrohabit.navigation.navUtils.NavScreens
 import org.koin.androidx.compose.koinViewModel
@@ -19,19 +18,16 @@ import org.koin.compose.koinInject
 fun NavScreen(
     OnboardingViewModel: OnboardingViewModel = koinViewModel(),
     homeViewModel: HomeViewModel = koinViewModel(),
-    sharedPreferences: SharedPreferences = koinInject(),
+    appPrefsRepo: AppPreferencesRepository = koinInject(),
     shouldOpenAddWater: Boolean = false,
     onAddWaterHandled: () -> Unit = {}
 ) {
     val TAG = "NavScreen"
     val navController = rememberNavController()
-    val isOnboardingCompleted = sharedPreferences.getBoolean("onBoardingCompleted", false)
-    var startDestination by remember {
-        mutableStateOf(
-            if (!isOnboardingCompleted) NavScreens.OnboardingNavHostingScreen.route
-            else NavScreens.BottomNavHostingScreen.route
-        )
-    }
+    val appPrefs by appPrefsRepo.preferencesFlow.collectAsState(initial = AppPreferences())
+    val isOnboardingCompleted = appPrefs.onboardingCompleted
+    val startDestination = if (isOnboardingCompleted) NavScreens.BottomNavHostingScreen.route
+        else NavScreens.OnboardingNavHostingScreen.route
 
     NavHost(
         navController = navController,

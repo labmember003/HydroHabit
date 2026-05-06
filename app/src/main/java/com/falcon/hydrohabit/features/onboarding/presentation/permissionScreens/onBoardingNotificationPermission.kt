@@ -1,12 +1,8 @@
 package com.falcon.hydrohabit.features.onboarding.presentation.permissionScreens
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.edit
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.utils.PermissionDeniedAlertDialog
 import com.falcon.hydrohabit.features.onboarding.utils.SingleButton
 import com.falcon.hydrohabit.ui.theme.backgroundColor2
@@ -43,6 +40,13 @@ import com.falcon.hydrohabit.ui.theme.onboardingBoxColor
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.primaryBlackLight
 import com.falcon.hydrohabit.ui.theme.waterColorBackground
+import dev.icerock.moko.permissions.DeniedAlwaysException
+import dev.icerock.moko.permissions.DeniedException
+import dev.icerock.moko.permissions.Permission
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.compose.BindEffect
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @Composable
 fun OnboardingNotifications(
@@ -54,19 +58,16 @@ fun OnboardingNotifications(
     var showPermissionDialog by remember {
         mutableStateOf(false)
     }
+    var isPermanentlyDenied by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE) }
-    val permissionLauncher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
-            println("Notification Permission: $it")
-            getPermissionDenied(it)
-            if (it) {
-                prefs.edit { putBoolean("notifications_enabled", true) }
-                getAllow()
-            } else {
-                showPermissionDialog = true
-            }
-        }
+    val scope = rememberCoroutineScope()
+
+    // Inject repositories
+    val appPrefsRepo: AppPreferencesRepository = koinInject()
+
+    // Bind moko-permissions controller to Activity lifecycle
+    val permissionsController: PermissionsController = koinInject()
+    BindEffect(permissionsController)
 
     if (showPermissionDialog) {
         PermissionDeniedAlertDialog(
@@ -96,8 +97,11 @@ fun OnboardingNotifications(
                 println("GET TO APP SETTINGS: App Settings")
             },
             onPermissionTitle = "Notification Permission",
-            onPermissionText = "It seems you permanently denied Notification Permission. Notifications are necessary to remind of your water breaks. You can go into settings to grant it",
-            onPermanentlyDenied = onPermissionDenied,
+            onPermissionText = if (isPermanentlyDenied)
+                "It seems you permanently denied Notification Permission. Notifications are necessary to remind of your water breaks. You can go into settings to grant it"
+            else
+                "Notification permission was denied. Notifications are necessary to remind of your water breaks. Please allow notifications.",
+            onPermanentlyDenied = isPermanentlyDenied || onPermissionDenied,
         )
     }
 
@@ -180,8 +184,27 @@ fun OnboardingNotifications(
 
             Spacer(modifier = Modifier.height(24.dp))
             SingleButton(getNavigate = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                scope.launch {
+                    try {
+                        permissionsController.providePermission(Permission.REMOTE_NOTIFICATION)
+                        // Permission granted
+                        println("Notification Permission: true (moko)")
+                        getPermissionDenied(true)
+                        appPrefsRepo.setNotificationsEnabled(true)
+                        getAllow()
+                    } catch (e: DeniedAlwaysException) {
+                        // Permanently denied — show dialog with settings link
+                        println("Notification Permission: permanently denied (moko)")
+                        getPermissionDenied(false)
+                        isPermanentlyDenied = true
+                        showPermissionDialog = true
+                    } catch (e: DeniedException) {
+                        // Denied (but not permanently) — show dialog
+                        println("Notification Permission: denied (moko)")
+                        getPermissionDenied(false)
+                        isPermanentlyDenied = false
+                        showPermissionDialog = true
+                    }
                 }
             }, buttonName = "Allow")
 

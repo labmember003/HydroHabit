@@ -50,11 +50,13 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
@@ -96,8 +98,12 @@ import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.primaryBlack
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.navigation.navUtils.BottomNavScreens
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferences
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Notifications
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,34 +146,41 @@ fun BottomBarHostingScreen(
     val context = navController.context
     val prefs = remember { context.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE) }
     val alarmScheduler = remember { AlarmScheduler(context) }
-    var notificationsEnabled by remember {
-        mutableStateOf(prefs.getBoolean("notifications_enabled", false))
-    }
+    val appPrefsRepo: AppPreferencesRepository = koinInject()
+    val scope = rememberCoroutineScope()
+    val appPrefs by appPrefsRepo.preferencesFlow.collectAsState(initial = AppPreferences())
+
+    var notificationsEnabled by remember { mutableStateOf(appPrefs.notificationsEnabled) }
 
     // Notification permission state
     var showNotificationPermissionDialog by remember { mutableStateOf(false) }
     var pendingNotificationToggle by remember { mutableStateOf(false) }
 
-    var selectedIntervalIndex by remember {
-        mutableIntStateOf(prefs.getInt("notification_interval_index", 1))
-    }
-    var wakeUpHour by remember {
-        mutableIntStateOf(prefs.getInt("wake_up_hour", 8))
-    }
-    var wakeUpMinute by remember {
-        mutableIntStateOf(prefs.getInt("wake_up_minute", 0))
-    }
-    var bedHour by remember {
-        mutableIntStateOf(prefs.getInt("bed_hour", 22))
-    }
-    var bedMinute by remember {
-        mutableIntStateOf(prefs.getInt("bed_minute", 0))
-    }
-    var selectedSoundIndex by remember {
-        mutableIntStateOf(prefs.getInt("notification_sound_index", 0))
-    }
-    var customSoundUri by remember {
-        mutableStateOf(prefs.getString("custom_sound_uri", null))
+    var selectedIntervalIndex by remember { mutableIntStateOf(appPrefs.notificationIntervalIndex) }
+    var wakeUpHour by remember { mutableIntStateOf(appPrefs.wakeUpHour) }
+    var wakeUpMinute by remember { mutableIntStateOf(appPrefs.wakeUpMinute) }
+    var bedHour by remember { mutableIntStateOf(appPrefs.bedHour) }
+    var bedMinute by remember { mutableIntStateOf(appPrefs.bedMinute) }
+    var selectedSoundIndex by remember { mutableIntStateOf(appPrefs.notificationSoundIndex) }
+    var customSoundUri by remember { mutableStateOf(appPrefs.customSoundUri) }
+
+    // Sync local state when DataStore emits updated values and reschedule notifications
+    LaunchedEffect(appPrefs) {
+        notificationsEnabled = appPrefs.notificationsEnabled
+        selectedIntervalIndex = appPrefs.notificationIntervalIndex
+        wakeUpHour = appPrefs.wakeUpHour
+        wakeUpMinute = appPrefs.wakeUpMinute
+        bedHour = appPrefs.bedHour
+        bedMinute = appPrefs.bedMinute
+        selectedSoundIndex = appPrefs.notificationSoundIndex
+        customSoundUri = appPrefs.customSoundUri
+        // Reschedule with real values now that DataStore has emitted
+        if (notificationsEnabled) {
+            val intervalMinutes = com.falcon.hydrohabit.features.profilescreen.intervalMinutesMap[selectedIntervalIndex]
+            alarmScheduler.scheduleRepeating(intervalMinutes, wakeUpHour, wakeUpMinute, bedHour, bedMinute)
+        } else {
+            alarmScheduler.cancelAll()
+        }
     }
 
     fun hasNotificationPermission(): Boolean {
@@ -181,7 +194,7 @@ fun BottomBarHostingScreen(
     ) { granted ->
         if (granted) {
             notificationsEnabled = true
-            prefs.edit { putBoolean("notifications_enabled", true) }
+            scope.launch { appPrefsRepo.setNotificationsEnabled(true) }
             val intervalMinutes = com.falcon.hydrohabit.features.profilescreen.intervalMinutesMap[selectedIntervalIndex]
             alarmScheduler.scheduleRepeating(intervalMinutes, wakeUpHour, wakeUpMinute, bedHour, bedMinute)
         } else {
@@ -190,7 +203,7 @@ fun BottomBarHostingScreen(
             // Revert the toggle
             if (pendingNotificationToggle) {
                 notificationsEnabled = false
-                prefs.edit { putBoolean("notifications_enabled", false) }
+                scope.launch { appPrefsRepo.setNotificationsEnabled(false) }
                 pendingNotificationToggle = false
             }
         }
@@ -273,8 +286,9 @@ fun BottomBarHostingScreen(
         println("onTotalWaterTrackingResourceAmount Onboarding: $onTotalWaterTrackingResourceAmount")
         getUpdateTotalWaterTrackingAmount(onTotalWaterTrackingResourceAmount)
         getGreeting()
-        // Schedule notifications on app startup based on saved settings
-        rescheduleNotifications()
+        // NOTE: Do NOT call rescheduleNotifications() here — at this point collectAsState
+        // still holds defaults (notificationsEnabled=false). Real scheduling happens in
+        // LaunchedEffect(appPrefs) once DataStore emits the actual saved values.
     }
 
     // Open add water dialog when triggered from notification
@@ -429,7 +443,7 @@ fun BottomBarHostingScreen(
                         if (enabled) {
                             if (hasNotificationPermission()) {
                                 notificationsEnabled = true
-                                prefs.edit { putBoolean("notifications_enabled", true) }
+                                scope.launch { appPrefsRepo.setNotificationsEnabled(true) }
                                 rescheduleNotifications()
                             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 pendingNotificationToggle = true
@@ -437,33 +451,37 @@ fun BottomBarHostingScreen(
                             }
                         } else {
                             notificationsEnabled = false
-                            prefs.edit { putBoolean("notifications_enabled", false) }
+                            scope.launch { appPrefsRepo.setNotificationsEnabled(false) }
                             rescheduleNotifications()
                         }
                     },
                     getIntervalChange = {
                         selectedIntervalIndex = it
-                        prefs.edit { putInt("notification_interval_index", it) }
+                        scope.launch { appPrefsRepo.setNotificationIntervalIndex(it) }
                         rescheduleNotifications()
                     },
                     getWakeUpHourChange = { h, m ->
                         wakeUpHour = h
                         wakeUpMinute = m
-                        prefs.edit { putInt("wake_up_hour", h).putInt("wake_up_minute", m) }
+                        scope.launch { appPrefsRepo.setWakeUpTime(h, m) }
                         rescheduleNotifications()
                     },
                     getBedHourChange = { h, m ->
                         bedHour = h
                         bedMinute = m
-                        prefs.edit { putInt("bed_hour", h).putInt("bed_minute", m) }
+                        scope.launch { appPrefsRepo.setBedTime(h, m) }
                         rescheduleNotifications()
                     },
                     getSoundChange = {
                         selectedSoundIndex = it
+                        scope.launch { appPrefsRepo.setNotificationSoundIndex(it) }
+                        // Dual-write to SharedPreferences for notification service (reads synchronously)
                         prefs.edit { putInt("notification_sound_index", it) }
                     },
                     onCustomSoundPicked = { uri ->
                         customSoundUri = uri
+                        scope.launch { appPrefsRepo.setCustomSoundUri(uri) }
+                        // Dual-write to SharedPreferences for notification service (reads synchronously)
                         prefs.edit { putString("custom_sound_uri", uri) }
                     },
                     modifier = Modifier

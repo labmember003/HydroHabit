@@ -6,6 +6,7 @@ import com.falcon.hydrohabit.features.homescreen.utils.StreakMonthClass
 import com.falcon.hydrohabit.features.homescreen.utils.UserSettings
 import com.falcon.hydrohabit.features.homescreen.utils.UserValues
 import com.falcon.hydrohabit.features.homescreen.utils.WaterAmount
+import com.falcon.hydrohabit.features.onboarding.source.AppPreferences
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import okio.BufferedSink
@@ -142,3 +143,27 @@ object OkioSerializerUserValues : OkioSerializer<UserValues> {
     }
 }
 
+object OkioSerializerAppPreferences : OkioSerializer<AppPreferences> {
+    override val defaultValue: AppPreferences = AppPreferences()
+
+    override suspend fun readFrom(source: BufferedSource): AppPreferences {
+        return try {
+            Json.decodeFromString(
+                deserializer = AppPreferences.serializer(),
+                string = source.readByteArray().decodeToString()
+            )
+        } catch (e: SerializationException) {
+            e.printStackTrace()
+            defaultValue
+        }
+    }
+
+    override suspend fun writeTo(t: AppPreferences, sink: BufferedSink) {
+        sink.write(
+            Json.encodeToString(
+                serializer = AppPreferences.serializer(),
+                value = t
+            ).encodeToByteArray()
+        )
+    }
+}

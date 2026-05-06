@@ -77,7 +77,7 @@ class AlarmScheduler(
         }
 
         if (!start.before(bedTime)) {
-            // Log.w(TAG, "START is after BEDTIME — no alarms will be scheduled!")
+            // No alarms will be scheduled — start is after bed time
         }
 
         // Schedule individual alarms for today's remaining slots
