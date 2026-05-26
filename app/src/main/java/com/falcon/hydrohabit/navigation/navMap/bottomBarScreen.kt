@@ -96,6 +96,7 @@ import com.falcon.hydrohabit.ui.theme.backgroundColor1
 import com.falcon.hydrohabit.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.primaryBlack
+import com.falcon.hydrohabit.ui.theme.primaryBlackLight
 import com.falcon.hydrohabit.ui.theme.waterColor
 import com.falcon.hydrohabit.navigation.navUtils.BottomNavScreens
 import com.falcon.hydrohabit.features.onboarding.source.AppPreferences
@@ -242,6 +243,8 @@ fun BottomBarHostingScreen(
                     tint = waterColor
                 )
             },
+            titleContentColor = primaryBlack,
+            textContentColor = primaryBlackLight,
             title = { Text("Notification Permission Required") },
             text = { Text("Notifications are essential for reminding you to drink water. Please enable notification permission in app settings.") },
             confirmButton = {
