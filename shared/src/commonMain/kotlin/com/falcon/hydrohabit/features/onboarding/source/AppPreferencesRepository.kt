@@ -77,6 +77,10 @@ class AppPreferencesRepository(private val context: Any?) {
         prefsStore.updateData { it.copy(customSoundUri = uri) }
     }
 
+    suspend fun setWeightUnit(unit: String) {
+        prefsStore.updateData { it.copy(weightUnit = unit) }
+    }
+
     /** Bulk update (for migration or settings screen) */
     suspend fun update(transform: (AppPreferences) -> AppPreferences) {
         prefsStore.updateData(transform)

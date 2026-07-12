@@ -23,6 +23,8 @@ import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingSleepSchedu
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingNotificationScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingWaterIntakeResultScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnboardingLoadingScreen
+import com.falcon.hydrohabit.composeapp.onboarding.components.WeightUnit
+import com.falcon.hydrohabit.composeapp.onboarding.components.toKg
 import com.falcon.hydrohabit.composeapp.ui.theme.HydroHabitTheme
 import com.falcon.hydrohabit.composeapp.ui.theme.backgroundColor2
 import com.falcon.hydrohabit.composeapp.ui.theme.waterColorBackground
@@ -77,6 +79,7 @@ private fun OnboardingFlow(
     // Body measurement state
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
+    var weightUnit by remember { mutableStateOf(WeightUnit.KG) }
     var weightError by remember { mutableStateOf(false) }
     var heightError by remember { mutableStateOf(false) }
 
@@ -113,10 +116,16 @@ private fun OnboardingFlow(
                     onWeightError = "Please enter a valid weight",
                     onHeightError = "Please enter a valid height"
                 ),
+                weightUnit = weightUnit,
+                getWeightUnitChange = {
+                    weightUnit = it
+                    weightError = false
+                    scope.launch { appPrefsRepo.setWeightUnit(it.name) }
+                },
                 getWeightChange = { weight = it; weightError = false },
                 getHeightChange = { height = it; heightError = false },
                 getNavigate = {
-                    val w = weight.toFloatOrNull()
+                    val w = weight.toFloatOrNull()?.let { weightUnit.toKg(it) }
                     val h = height.toFloatOrNull()
                     weightError = w == null || w <= 0f || w > 300f
                     heightError = h == null || h <= 0f || h > 300f
@@ -141,7 +150,7 @@ private fun OnboardingFlow(
                         activityError = true
                     } else {
                         val h = height.toFloatOrNull() ?: 170f
-                        val w = weight.toFloatOrNull() ?: 70f
+                        val w = weight.toFloatOrNull()?.let { weightUnit.toKg(it) } ?: 70f
                         val activityPercentage = when (activityLevel) {
                             0 -> 50
                             1 -> 35
@@ -180,7 +189,7 @@ private fun OnboardingFlow(
                 getBedTimeChange = { bedHour = it },
                 getNavigate = {
                     scope.launch {
-                        val w = weight.toFloatOrNull()?.toInt() ?: 70
+                        val w = weight.toFloatOrNull()?.let { weightUnit.toKg(it) }?.toInt() ?: 70
                         val h = height.toFloatOrNull()?.toInt() ?: 170
                         val intake = waterIntake.replace(" ml", "").toIntOrNull() ?: 2000
                         val todayDate = currentTimeInfo().dateString

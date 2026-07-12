@@ -25,5 +25,6 @@ data class AppPreferences(
     val notificationIntervalIndex: Int = 1,
     val notificationSoundIndex: Int = 0,
     val customSoundUri: String? = null,
+    val weightUnit: String = "KG",
 )
 

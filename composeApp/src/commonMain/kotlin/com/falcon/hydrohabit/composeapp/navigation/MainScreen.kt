@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import com.falcon.hydrohabit.composeapp.alarm.AlarmSchedulerContract
 import com.falcon.hydrohabit.composeapp.home.HomeScreenHost
 import com.falcon.hydrohabit.composeapp.settings.SettingsScreen
+import com.falcon.hydrohabit.composeapp.onboarding.components.WeightUnit
 import com.falcon.hydrohabit.composeapp.settings.intervalMinutesMap
 import com.falcon.hydrohabit.composeapp.settings.rememberNotificationPermissionState
 import com.falcon.hydrohabit.composeapp.ui.theme.backgroundColor1
@@ -239,6 +240,9 @@ fun MainScreen(
                         ),
                         heightCm = userSettings.userHeight,
                         weightKg = userSettings.userWeight,
+                        initialWeightUnit = runCatching { WeightUnit.valueOf(appPrefs.weightUnit) }
+                            .getOrDefault(WeightUnit.KG),
+                        getWeightUnitChange = { scope.launch { appPrefsRepo.setWeightUnit(it.name) } },
                         getNotificationChange = { enabled ->
                             if (enabled) {
                                 if (permissionState.hasPermission) {

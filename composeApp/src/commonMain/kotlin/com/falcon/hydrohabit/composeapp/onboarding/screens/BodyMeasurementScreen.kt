@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import com.falcon.hydrohabit.composeapp.onboarding.components.OnboardingIndicator
 import com.falcon.hydrohabit.composeapp.onboarding.components.SingleButton
 import com.falcon.hydrohabit.composeapp.onboarding.components.TextFieldCustom
+import com.falcon.hydrohabit.composeapp.onboarding.components.WeightUnit
+import com.falcon.hydrohabit.composeapp.onboarding.components.WeightUnitSelector
 import com.falcon.hydrohabit.composeapp.ui.theme.fontFamily
 import com.falcon.hydrohabit.composeapp.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.composeapp.ui.theme.onboardingBoxColor
@@ -39,6 +41,8 @@ import com.falcon.hydrohabit.features.onboarding.utils.BodyMeasurementData
 fun OnBoardingBodyMeasurementsScreen(
     modifier: Modifier = Modifier,
     bodyMeasurementData: BodyMeasurementData,
+    weightUnit: WeightUnit,
+    getWeightUnitChange: (WeightUnit) -> Unit,
     getWeightChange: (String) -> Unit,
     getHeightChange: (String) -> Unit,
     getNavigate: () -> Unit,
@@ -118,11 +122,17 @@ fun OnBoardingBodyMeasurementsScreen(
                     onTextChange = bodyMeasurementData.onWeightChange,
                     checkError = bodyMeasurementData.onWeightCheck,
                     onErrorText = bodyMeasurementData.onWeightError,
-                    onPlaceHolderText = "Enter Weight in Kgs",
+                    onPlaceHolderText = "Enter Weight in ${weightUnit.label}",
                     getTextChange = getWeightChange,
                     onLabelText = "Weight",
                     onImeAction = ImeAction.Next,
-                    onKeyboardType = KeyboardType.Number
+                    onKeyboardType = KeyboardType.Number,
+                    trailingContent = {
+                        WeightUnitSelector(
+                            selected = weightUnit,
+                            onSelected = getWeightUnitChange
+                        )
+                    }
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 

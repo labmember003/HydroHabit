@@ -42,7 +42,8 @@ fun TextFieldCustom(
     getTextChange: (String) -> Unit,
     onImeAction: ImeAction,
     visualTransformation: VisualTransformation? = null,
-    onKeyboardType: KeyboardType? = null
+    onKeyboardType: KeyboardType? = null,
+    trailingContent: @Composable (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth().wrapContentSize(),
@@ -105,6 +106,7 @@ fun TextFieldCustom(
                 imeAction = onImeAction
             ),
             visualTransformation = visualTransformation ?: VisualTransformation.None,
+            trailingIcon = trailingContent,
         )
         if (checkError) {
             Spacer(modifier = Modifier.height(10.dp))

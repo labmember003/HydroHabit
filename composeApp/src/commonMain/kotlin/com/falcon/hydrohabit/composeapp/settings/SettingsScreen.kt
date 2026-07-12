@@ -44,6 +44,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.falcon.hydrohabit.composeapp.onboarding.components.WeightUnit
+import com.falcon.hydrohabit.composeapp.onboarding.components.WeightUnitSelector
+import com.falcon.hydrohabit.composeapp.onboarding.components.fromKg
+import com.falcon.hydrohabit.composeapp.onboarding.components.toKg
+import kotlin.math.roundToInt
 import com.falcon.hydrohabit.composeapp.ui.theme.fontFamily
 import com.falcon.hydrohabit.composeapp.ui.theme.fontFamilyBold
 import com.falcon.hydrohabit.composeapp.ui.theme.fontFamilyLight
@@ -78,6 +83,8 @@ fun SettingsScreen(
     profileData: ProfileData,
     heightCm: Int,
     weightKg: Int,
+    initialWeightUnit: WeightUnit = WeightUnit.KG,
+    getWeightUnitChange: (WeightUnit) -> Unit = {},
     getNotificationChange: (Boolean) -> Unit,
     getIntervalChange: (Int) -> Unit,
     getWakeUpHourChange: (Int, Int) -> Unit,
@@ -149,7 +156,10 @@ fun SettingsScreen(
         // Weight
         SettingsRow(
             title = "Weight",
-            value = if (weightKg > 0) "$weightKg kg" else "Not set",
+            value = if (weightKg > 0) {
+                val display = initialWeightUnit.fromKg(weightKg.toFloat()).roundToInt()
+                "$display ${initialWeightUnit.label.lowercase()}"
+            } else "Not set",
             onClick = { showWeightDialog = true }
         )
 
@@ -365,6 +375,9 @@ fun SettingsScreen(
             title = "Weight",
             unit = "kg",
             initialValue = weightKg,
+            weightUnitToggle = true,
+            initialUnit = initialWeightUnit,
+            onUnitChange = getWeightUnitChange,
             onConfirm = { value ->
                 getWeightChange(value)
                 showWeightDialog = false
@@ -381,10 +394,18 @@ private fun NumberInputDialog(
     unit: String,
     initialValue: Int,
     onConfirm: (Int) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    weightUnitToggle: Boolean = false,
+    initialUnit: WeightUnit = WeightUnit.KG,
+    onUnitChange: (WeightUnit) -> Unit = {}
 ) {
+    var selectedUnit by remember { mutableStateOf(initialUnit) }
     var text by remember {
-        mutableStateOf(if (initialValue > 0) initialValue.toString() else "")
+        mutableStateOf(
+            if (initialValue > 0) {
+                initialUnit.fromKg(initialValue.toFloat()).roundToInt().toString()
+            } else ""
+        )
     }
     var isError by remember { mutableStateOf(false) }
 
@@ -414,7 +435,26 @@ private fun NumberInputDialog(
                 },
                 singleLine = true,
                 isError = isError,
-                suffix = { Text(unit, color = Color(0xFF8E8E93), fontFamily = fontFamily) },
+                suffix = {
+                    if (weightUnitToggle) {
+                        WeightUnitSelector(
+                            selected = selectedUnit,
+                            onSelected = { newUnit ->
+                                if (newUnit != selectedUnit) {
+                                    text = text.toFloatOrNull()
+                                        ?.let { selectedUnit.toKg(it) }
+                                        ?.let { newUnit.fromKg(it).roundToInt().toString() }
+                                        ?: text
+                                    selectedUnit = newUnit
+                                    isError = false
+                                    onUnitChange(newUnit)
+                                }
+                            }
+                        )
+                    } else {
+                        Text(unit, color = Color(0xFF8E8E93), fontFamily = fontFamily)
+                    }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 textStyle = TextStyle(
                     fontSize = 18.sp,
@@ -459,7 +499,9 @@ private fun NumberInputDialog(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 TextButton(onClick = {
-                    val value = text.toIntOrNull()
+                    val value = text.toFloatOrNull()
+                        ?.let { if (weightUnitToggle) selectedUnit.toKg(it) else it }
+                        ?.roundToInt()
                     if (value == null || value <= 0 || value > 300) {
                         isError = true
                     } else {
