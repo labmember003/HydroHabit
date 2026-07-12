@@ -11,6 +11,11 @@
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		7555FF8C242A565B00829871 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7555FF8B242A565B00829871 /* Assets.xcassets */; };
 		7555FF8F242A565B00829871 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7555FF8E242A565B00829871 /* Preview Assets.xcassets */; };
+		AA0000000000000000000E01 /* water_drop_1.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000F01 /* water_drop_1.wav */; };
+		AA0000000000000000000E02 /* water_drop_2.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000F02 /* water_drop_2.wav */; };
+		AA0000000000000000000E03 /* water_drop_3.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000F03 /* water_drop_3.wav */; };
+		AA0000000000000000000E04 /* water_drop_4.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000F04 /* water_drop_4.wav */; };
+		AA0000000000000000000E05 /* water_drop_5.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000F05 /* water_drop_5.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +25,11 @@
 		7555FF8B242A565B00829871 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7555FF8E242A565B00829871 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		7555FF90242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0000000000000000000F01 /* water_drop_1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = water_drop_1.wav; sourceTree = "<group>"; };
+		AA0000000000000000000F02 /* water_drop_2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = water_drop_2.wav; sourceTree = "<group>"; };
+		AA0000000000000000000F03 /* water_drop_3.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = water_drop_3.wav; sourceTree = "<group>"; };
+		AA0000000000000000000F04 /* water_drop_4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = water_drop_4.wav; sourceTree = "<group>"; };
+		AA0000000000000000000F05 /* water_drop_5.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = water_drop_5.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,10 +65,23 @@
 				2152FB032600AC8F00CF470E /* iOSApp.swift */,
 				7555FF82242A565900829871 /* ContentView.swift */,
 				7555FF8B242A565B00829871 /* Assets.xcassets */,
+				AA0000000000000000000A01 /* Sounds */,
 				7555FF8D242A565B00829871 /* Preview Content */,
 				7555FF90242A565B00829871 /* Info.plist */,
 			);
 			path = iosApp;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000A01 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000F01 /* water_drop_1.wav */,
+				AA0000000000000000000F02 /* water_drop_2.wav */,
+				AA0000000000000000000F03 /* water_drop_3.wav */,
+				AA0000000000000000000F04 /* water_drop_4.wav */,
+				AA0000000000000000000F05 /* water_drop_5.wav */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 		7555FF8D242A565B00829871 /* Preview Content */ = {
@@ -130,6 +153,11 @@
 			files = (
 				7555FF8F242A565B00829871 /* Preview Assets.xcassets in Resources */,
 				7555FF8C242A565B00829871 /* Assets.xcassets in Resources */,
+				AA0000000000000000000E01 /* water_drop_1.wav in Resources */,
+				AA0000000000000000000E02 /* water_drop_2.wav in Resources */,
+				AA0000000000000000000E03 /* water_drop_3.wav in Resources */,
+				AA0000000000000000000E04 /* water_drop_4.wav in Resources */,
+				AA0000000000000000000E05 /* water_drop_5.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

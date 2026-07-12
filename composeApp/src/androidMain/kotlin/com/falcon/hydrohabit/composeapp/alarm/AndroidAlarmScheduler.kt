@@ -18,8 +18,11 @@ class AndroidAlarmScheduler(
         wakeUpHour: Int,
         wakeUpMinute: Int,
         bedHour: Int,
-        bedMinute: Int
+        bedMinute: Int,
+        soundIndex: Int
     ) {
+        // soundIndex is unused on Android: the sound is resolved at display time by
+        // ComposeNotificationService via per-sound notification channels.
         cancelAll()
 
         val now = Calendar.getInstance()

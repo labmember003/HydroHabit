@@ -19,11 +19,36 @@ class IosAlarmScheduler : AlarmSchedulerContract {
     private val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
     private val idPrefix = "water_reminder_"
 
+    // Shared thread so iOS collapses all reminders into a single group in Notification
+    // Center (closest equivalent to Android reusing one notification id).
+    private val threadId = "water_reminder_thread"
+
+    // Maps the selected sound index to a bundled WAV, matching the Android raw sounds.
+    // Index 0-4 → water_drop_1..5.wav; anything else (System Default / Custom) → system default.
+    private fun soundForIndex(soundIndex: Int): UNNotificationSound {
+        val fileName = when (soundIndex) {
+            0 -> "water_drop_1.wav"
+            1 -> "water_drop_2.wav"
+            2 -> "water_drop_3.wav"
+            3 -> "water_drop_4.wav"
+            4 -> "water_drop_5.wav"
+            else -> null
+        }
+        return if (fileName != null) {
+            println("IosAlarmScheduler: using custom sound '$fileName' for index $soundIndex")
+            UNNotificationSound.soundNamed(fileName)
+        } else {
+            println("IosAlarmScheduler: using default system sound for index $soundIndex")
+            UNNotificationSound.defaultSound
+        }
+    }
+
     override fun schedule(reminder: WaterReminder) {
         val content = UNMutableNotificationContent().apply {
             setTitle("Water Reminder 💧")
             setBody(reminder.message)
             setSound(UNNotificationSound.defaultSound)
+            setThreadIdentifier(threadId)
         }
 
         val dateComponents = NSDateComponents().apply {
@@ -61,9 +86,11 @@ class IosAlarmScheduler : AlarmSchedulerContract {
         wakeUpHour: Int,
         wakeUpMinute: Int,
         bedHour: Int,
-        bedMinute: Int
+        bedMinute: Int,
+        soundIndex: Int
     ) {
         cancelAll()
+        val notificationSound = soundForIndex(soundIndex)
 
         val calendar = NSCalendar.currentCalendar
         val now = NSDate()
@@ -122,7 +149,8 @@ class IosAlarmScheduler : AlarmSchedulerContract {
             val content = UNMutableNotificationContent().apply {
                 setTitle("Water Reminder 💧")
                 setBody("Time to drink water! Stay hydrated.")
-                setSound(UNNotificationSound.defaultSound)
+                setSound(notificationSound)
+                setThreadIdentifier(threadId)
             }
 
             val dateComponents = NSDateComponents().apply {

@@ -10,7 +10,8 @@ interface AlarmSchedulerContract {
         wakeUpHour: Int = 8,
         wakeUpMinute: Int = 0,
         bedHour: Int = 22,
-        bedMinute: Int = 0
+        bedMinute: Int = 0,
+        soundIndex: Int = 0
     )
     fun cancelAll()
 }

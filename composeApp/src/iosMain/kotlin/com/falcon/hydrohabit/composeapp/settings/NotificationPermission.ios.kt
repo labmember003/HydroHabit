@@ -43,7 +43,11 @@ actual fun rememberNotificationPermissionState(
         openAppSettings = {
             val url = NSURL.URLWithString(UIApplicationOpenSettingsURLString)
             if (url != null) {
-                UIApplication.sharedApplication.openURL(url)
+                UIApplication.sharedApplication.openURL(
+                    url,
+                    options = mapOf<Any?, Any?>(),
+                    completionHandler = null
+                )
             }
         }
     )
