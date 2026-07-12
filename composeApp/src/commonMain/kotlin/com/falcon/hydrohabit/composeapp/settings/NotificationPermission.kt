@@ -10,6 +10,5 @@ data class NotificationPermissionState(
 
 @Composable
 expect fun rememberNotificationPermissionState(
-    onPermissionResult: (Boolean) -> Unit,
-    onNoPermissionOnResume: () -> Unit
+    onPermissionResult: (Boolean) -> Unit
 ): NotificationPermissionState

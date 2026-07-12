@@ -17,8 +17,7 @@ import platform.UserNotifications.UNUserNotificationCenter
 
 @Composable
 actual fun rememberNotificationPermissionState(
-    onPermissionResult: (Boolean) -> Unit,
-    onNoPermissionOnResume: () -> Unit
+    onPermissionResult: (Boolean) -> Unit
 ): NotificationPermissionState {
     val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
     var hasPermission by remember { mutableStateOf(false) }

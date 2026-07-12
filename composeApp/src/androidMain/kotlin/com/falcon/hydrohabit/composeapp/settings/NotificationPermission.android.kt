@@ -13,7 +13,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -23,8 +22,7 @@ import androidx.lifecycle.LifecycleEventObserver
 
 @Composable
 actual fun rememberNotificationPermissionState(
-    onPermissionResult: (Boolean) -> Unit,
-    onNoPermissionOnResume: () -> Unit
+    onPermissionResult: (Boolean) -> Unit
 ): NotificationPermissionState {
     val context = LocalContext.current
 
@@ -48,15 +46,15 @@ actual fun rememberNotificationPermissionState(
         onPermissionResult(granted)
     }
 
-    // Re-check permission on every resume (e.g. returning from app settings).
+    // Re-check permission on every resume (e.g. returning from app settings) so the
+    // toggle state stays accurate. Intentionally does NOT surface any dialog here —
+    // the normal system prompt happens during onboarding, and the "open settings"
+    // dialog is only shown when the user actively tries to enable notifications.
     val lifecycleOwner = LocalLifecycleOwner.current
-    val currentOnNoPermission by rememberUpdatedState(onNoPermissionOnResume)
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                val granted = checkPermission()
-                hasPermission = granted
-                if (!granted) currentOnNoPermission()
+                hasPermission = checkPermission()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

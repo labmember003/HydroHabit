@@ -20,6 +20,7 @@ import com.falcon.hydrohabit.composeapp.navigation.MainScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingActiveScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingBodyMeasurementsScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingSleepScheduleScreen
+import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingNotificationScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingWaterIntakeResultScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnboardingLoadingScreen
 import com.falcon.hydrohabit.composeapp.ui.theme.HydroHabitTheme
@@ -38,6 +39,7 @@ private enum class OnboardingStep {
     Loading,
     WaterResult,
     SleepSchedule,
+    NotificationPermission,
 }
 
 /**
@@ -197,10 +199,22 @@ private fun OnboardingFlow(
                         )
                         appPrefsRepo.setWakeUpTime(wakeUpHour, 0)
                         appPrefsRepo.setBedTime(bedHour, 0)
-                        appPrefsRepo.setOnboardingCompleted(true)
+                        currentStep = OnboardingStep.NotificationPermission
                     }
                 },
                 getBack = { currentStep = OnboardingStep.WaterResult }
+            )
+        }
+
+        OnboardingStep.NotificationPermission -> {
+            OnBoardingNotificationScreen(
+                modifier = backgroundModifier,
+                onFinished = { granted ->
+                    scope.launch {
+                        if (granted) appPrefsRepo.setNotificationsEnabled(true)
+                        appPrefsRepo.setOnboardingCompleted(true)
+                    }
+                }
             )
         }
     }

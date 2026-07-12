@@ -123,6 +123,7 @@ fun MainScreen(
                 rescheduleNotifications()
             } else {
                 // Denied (or permanently denied) — guide user to app settings and revert.
+                // Only reached when the user actively tries to enable notifications.
                 showNotificationPermissionDialog = true
                 if (pendingNotificationToggle) {
                     notificationsEnabled = false
@@ -130,9 +131,6 @@ fun MainScreen(
                     pendingNotificationToggle = false
                 }
             }
-        },
-        onNoPermissionOnResume = {
-            showNotificationPermissionDialog = true
         }
     )
 
