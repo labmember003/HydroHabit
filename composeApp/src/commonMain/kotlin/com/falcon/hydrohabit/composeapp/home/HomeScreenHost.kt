@@ -31,6 +31,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -338,6 +339,28 @@ fun WaterCarouselSheet(
     val itemHeightDp = 56.dp
     val pickerHeight = itemHeightDp * visibleItems
     val totalDataItems = if (isEndless) Int.MAX_VALUE - 2 else items.size
+
+    // Haptic feedback each time a new item passes the center while scrolling.
+    val tickHaptic = rememberCarouselHaptic()
+    val lastCenteredIndex = remember { mutableIntStateOf(-1) }
+    LaunchedEffect(
+        remember { derivedStateOf { listState.firstVisibleItemIndex } },
+        listState.firstVisibleItemScrollOffset
+    ) {
+        val layoutInfo = listState.layoutInfo
+        val viewportCenter =
+            (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+        val closestItem = layoutInfo.visibleItemsInfo
+            .filter { it.index in 1..totalDataItems }
+            .minByOrNull { kotlin.math.abs((it.offset + it.size / 2) - viewportCenter) }
+        closestItem?.let {
+            val dataIndex = (it.index - 1) % items.size
+            if (lastCenteredIndex.intValue != dataIndex) {
+                lastCenteredIndex.intValue = dataIndex
+                tickHaptic()
+            }
+        }
+    }
 
     // Snap to the center item when scrolling stops. Only act after a real scroll —
     // otherwise the initial (stale) scroll position would overwrite `selected` and
