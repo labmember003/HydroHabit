@@ -36,12 +36,22 @@ kotlin {
             // Koin
             implementation("io.insert-koin:koin-core:3.5.4")
             implementation("io.insert-koin:koin-compose:1.1.2")
+            // Compottie (Lottie) — multiplatform
+            implementation("io.github.alexzhirkevich:compottie:2.0.0-rc01")
+            implementation("io.github.alexzhirkevich:compottie-resources:2.0.0-rc01")
         }
 
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.9.0")
             implementation("io.insert-koin:koin-android:3.5.4-RC1")
         }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+        force("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.6.1")
     }
 }
 
@@ -61,6 +71,10 @@ android {
         release {
             isMinifyEnabled = false
         }
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {

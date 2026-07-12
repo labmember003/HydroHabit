@@ -1,37 +1,33 @@
 package com.falcon.hydrohabit.composeapp
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.falcon.hydrohabit.composeapp.alarm.AlarmSchedulerContract
+import kotlinx.coroutines.launch
+import com.falcon.hydrohabit.composeapp.navigation.MainScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingActiveScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingBodyMeasurementsScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingSleepScheduleScreen
 import com.falcon.hydrohabit.composeapp.onboarding.screens.OnBoardingWaterIntakeResultScreen
+import com.falcon.hydrohabit.composeapp.onboarding.screens.OnboardingLoadingScreen
 import com.falcon.hydrohabit.composeapp.ui.theme.HydroHabitTheme
-import com.falcon.hydrohabit.composeapp.ui.theme.backgroundColor1
 import com.falcon.hydrohabit.composeapp.ui.theme.backgroundColor2
-import com.falcon.hydrohabit.composeapp.ui.theme.primaryBlack
-import com.falcon.hydrohabit.composeapp.ui.theme.waterColor
 import com.falcon.hydrohabit.composeapp.ui.theme.waterColorBackground
 import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
+import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
+import com.falcon.hydrohabit.features.homescreen.usecase.currentTimeInfo
 import com.falcon.hydrohabit.features.onboarding.usecase.WaterIntakeCalculator
 import com.falcon.hydrohabit.features.onboarding.utils.BodyMeasurementData
 import com.falcon.hydrohabit.features.onboarding.utils.activityMeasurementData
@@ -39,6 +35,7 @@ import com.falcon.hydrohabit.features.onboarding.utils.activityMeasurementData
 private enum class OnboardingStep {
     BodyMeasurement,
     Activity,
+    Loading,
     WaterResult,
     SleepSchedule,
 }
@@ -47,43 +44,32 @@ private enum class OnboardingStep {
  * Root composable for the Compose Multiplatform app.
  */
 @Composable
-fun App(appPrefsRepo: AppPreferencesRepository) {
+fun App(
+    appPrefsRepo: AppPreferencesRepository,
+    onboardingRepo: OnboardingRepositoryContract,
+    alarmScheduler: AlarmSchedulerContract
+) {
     val prefs by appPrefsRepo.cachedPreferences.collectAsState()
 
     HydroHabitTheme {
         if (prefs.onboardingCompleted) {
-            // Home screen placeholder — will be migrated in future phase
-            HomeScreenPlaceholder()
+            MainScreen(
+                appPrefsRepo = appPrefsRepo,
+                onboardingRepo = onboardingRepo,
+                alarmScheduler = alarmScheduler
+            )
         } else {
-            OnboardingFlow(appPrefsRepo)
+            OnboardingFlow(appPrefsRepo, onboardingRepo)
         }
     }
 }
 
 @Composable
-private fun HomeScreenPlaceholder() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor1)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "HydroHabit 💧",
-            style = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = primaryBlack)
-        )
-        Text(
-            text = "Welcome back!",
-            style = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Normal, color = waterColor),
-            modifier = Modifier.padding(top = 16.dp)
-        )
-    }
-}
-
-@Composable
-private fun OnboardingFlow(appPrefsRepo: AppPreferencesRepository) {
+private fun OnboardingFlow(
+    appPrefsRepo: AppPreferencesRepository,
+    onboardingRepo: OnboardingRepositoryContract
+) {
+    val scope = rememberCoroutineScope()
     var currentStep by remember { mutableStateOf(OnboardingStep.BodyMeasurement) }
 
     // Body measurement state
@@ -154,11 +140,23 @@ private fun OnboardingFlow(appPrefsRepo: AppPreferencesRepository) {
                     } else {
                         val h = height.toFloatOrNull() ?: 170f
                         val w = weight.toFloatOrNull() ?: 70f
-                        waterIntake = "${WaterIntakeCalculator.calculateWaterIntake(h.toInt(), w.toInt(), activityLevel)} ml"
-                        currentStep = OnboardingStep.WaterResult
+                        val activityPercentage = when (activityLevel) {
+                            0 -> 50
+                            1 -> 35
+                            else -> 20
+                        }
+                        waterIntake = "${WaterIntakeCalculator.calculateWaterIntake(h.toInt(), w.toInt(), activityPercentage)} ml"
+                        currentStep = OnboardingStep.Loading
                     }
                 },
                 getBacK = { currentStep = OnboardingStep.BodyMeasurement }
+            )
+        }
+
+        OnboardingStep.Loading -> {
+            OnboardingLoadingScreen(
+                modifier = backgroundModifier,
+                getNavigate = { currentStep = OnboardingStep.WaterResult }
             )
         }
 
@@ -179,9 +177,28 @@ private fun OnboardingFlow(appPrefsRepo: AppPreferencesRepository) {
                 getWakeUpChange = { wakeUpHour = it },
                 getBedTimeChange = { bedHour = it },
                 getNavigate = {
-                    // Onboarding complete — save to DataStore
-                    // In a real app this would be in a coroutine scope
-                    // For now just mark as completed
+                    scope.launch {
+                        val w = weight.toFloatOrNull()?.toInt() ?: 70
+                        val h = height.toFloatOrNull()?.toInt() ?: 170
+                        val intake = waterIntake.replace(" ml", "").toIntOrNull() ?: 2000
+                        val todayDate = currentTimeInfo().dateString
+
+                        onboardingRepo.updateWaterAmount(
+                            onUsedWater = 0,
+                            onTotalWaterAmount = intake,
+                            onWaterDay = todayDate
+                        )
+                        onboardingRepo.updateUserSettingsStore(
+                            userHeight = h,
+                            userWaterIntake = intake,
+                            userName = "",
+                            userWeight = w,
+                            onBoardingCompleted = true
+                        )
+                        appPrefsRepo.setWakeUpTime(wakeUpHour, 0)
+                        appPrefsRepo.setBedTime(bedHour, 0)
+                        appPrefsRepo.setOnboardingCompleted(true)
+                    }
                 },
                 getBack = { currentStep = OnboardingStep.WaterResult }
             )

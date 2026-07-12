@@ -15,8 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -231,10 +235,7 @@ fun OnBoardingSleepScheduleScreen(
     }
 }
 
-/**
- * A simple cross-platform time picker dialog using increment/decrement buttons.
- * Works on both Android and iOS without platform-specific TimePicker APIs.
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SimpleTimePickerDialog(
     title: String,
@@ -243,8 +244,11 @@ private fun SimpleTimePickerDialog(
     onConfirm: (Int, Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var hour by remember { mutableIntStateOf(initialHour) }
-    var minute by remember { mutableIntStateOf(initialMinute) }
+    val state = rememberTimePickerState(
+        initialHour = initialHour,
+        initialMinute = initialMinute,
+        is24Hour = false
+    )
 
     Dialog(onDismissRequest = onDismiss) {
         Column(
@@ -264,65 +268,29 @@ private fun SimpleTimePickerDialog(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Hour / Minute display with +/- buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Hour column
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Hour", style = TextStyle(fontSize = 12.sp, color = primaryBlackLight))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = { hour = if (hour <= 0) 23 else hour - 1 }) {
-                            Text("−", fontSize = 24.sp, color = waterColor)
-                        }
-                        Text(
-                            text = hour.toString().padStart(2, '0'),
-                            style = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold, color = primaryBlack),
-                            modifier = Modifier.width(56.dp),
-                            textAlign = TextAlign.Center
-                        )
-                        TextButton(onClick = { hour = if (hour >= 23) 0 else hour + 1 }) {
-                            Text("+", fontSize = 24.sp, color = waterColor)
-                        }
-                    }
-                }
-
-                Text(":", style = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold, color = primaryBlack))
-
-                // Minute column
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Min", style = TextStyle(fontSize = 12.sp, color = primaryBlackLight))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = { minute = if (minute <= 0) 59 else minute - 1 }) {
-                            Text("−", fontSize = 24.sp, color = waterColor)
-                        }
-                        Text(
-                            text = minute.toString().padStart(2, '0'),
-                            style = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold, color = primaryBlack),
-                            modifier = Modifier.width(56.dp),
-                            textAlign = TextAlign.Center
-                        )
-                        TextButton(onClick = { minute = if (minute >= 59) 0 else minute + 1 }) {
-                            Text("+", fontSize = 24.sp, color = waterColor)
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = formatTime(hour, minute),
-                style = TextStyle(fontSize = 16.sp, color = primaryBlackLight),
-                textAlign = TextAlign.Center
+            TimePicker(
+                state = state,
+                colors = TimePickerDefaults.colors(
+                    clockDialColor = Color(0xFFF2F2F7),
+                    clockDialSelectedContentColor = Color.White,
+                    clockDialUnselectedContentColor = primaryBlack,
+                    selectorColor = waterColor,
+                    containerColor = Color.White,
+                    periodSelectorBorderColor = Color(0xFFD1D1D6),
+                    periodSelectorSelectedContainerColor = waterColor.copy(alpha = 0.15f),
+                    periodSelectorUnselectedContainerColor = Color.White,
+                    periodSelectorSelectedContentColor = waterColor,
+                    periodSelectorUnselectedContentColor = Color(0xFF8E8E93),
+                    timeSelectorSelectedContainerColor = waterColor.copy(alpha = 0.15f),
+                    timeSelectorUnselectedContainerColor = Color(0xFFF2F2F7),
+                    timeSelectorSelectedContentColor = waterColor,
+                    timeSelectorUnselectedContentColor = primaryBlack,
+                )
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -332,7 +300,7 @@ private fun SimpleTimePickerDialog(
                     Text("Cancel", color = Color(0xFF8E8E93), fontFamily = fontFamily, fontSize = 14.sp)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                TextButton(onClick = { onConfirm(hour, minute) }) {
+                TextButton(onClick = { onConfirm(state.hour, state.minute) }) {
                     Text("Done", color = waterColor, fontFamily = fontFamilyBold, fontSize = 14.sp)
                 }
             }

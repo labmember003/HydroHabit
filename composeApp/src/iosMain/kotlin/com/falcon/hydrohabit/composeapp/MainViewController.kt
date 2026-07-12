@@ -1,26 +1,35 @@
 package com.falcon.hydrohabit.composeapp
 
 import androidx.compose.ui.window.ComposeUIViewController
+import com.falcon.hydrohabit.composeapp.alarm.AlarmSchedulerContract
+import com.falcon.hydrohabit.composeapp.alarm.IosAlarmScheduler
 import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
+import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.shared.di.sharedModule
 import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import org.koin.mp.KoinPlatform
 import platform.UIKit.UIViewController
 
-/**
- * iOS entry point — called from Swift to get the root UIViewController.
- */
 fun MainViewController(): UIViewController {
     initKoinIos()
-    val appPrefsRepo = KoinPlatform.getKoin().get<AppPreferencesRepository>()
+    val koin = KoinPlatform.getKoin()
+    val appPrefsRepo = koin.get<AppPreferencesRepository>()
+    val onboardingRepo = koin.get<OnboardingRepositoryContract>()
+    val alarmScheduler = koin.get<AlarmSchedulerContract>()
     return ComposeUIViewController {
-        App(appPrefsRepo)
+        App(appPrefsRepo, onboardingRepo, alarmScheduler)
     }
 }
 
 private fun initKoinIos() {
     startKoin {
-        modules(sharedModule(null))
+        modules(
+            sharedModule(null),
+            module {
+                single<AlarmSchedulerContract> { IosAlarmScheduler() }
+            }
+        )
     }
 }
 
