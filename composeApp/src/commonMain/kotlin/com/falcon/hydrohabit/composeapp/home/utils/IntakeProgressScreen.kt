@@ -1,0 +1,61 @@
+package com.falcon.hydrohabit.composeapp.home.utils
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.falcon.hydrohabit.composeapp.ui.theme.fontFamilyLight
+
+@Composable
+fun IntakeProgressScreen(
+    modifier: Modifier = Modifier,
+    onAvgWaterPercent: String,
+    onAvgWaterIntake: String
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(
+                text = onAvgWaterIntake,
+                modifier = Modifier,
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(400),
+                    color = Color.White,
+                    textAlign = TextAlign.Start,
+                )
+            )
+            Spacer(modifier = Modifier.size(10.dp))
+            Text(
+                text = onAvgWaterPercent,
+                modifier = Modifier,
+                style = TextStyle(
+                    fontSize = 42.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(700),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                )
+            )
+        }
+    }
+}
