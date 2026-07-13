@@ -19,10 +19,6 @@ class IosAlarmScheduler : AlarmSchedulerContract {
     private val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
     private val idPrefix = "water_reminder_"
 
-    // Shared thread so iOS collapses all reminders into a single group in Notification
-    // Center (closest equivalent to Android reusing one notification id).
-    private val threadId = "water_reminder_thread"
-
     // Maps the selected sound index to a bundled WAV, matching the Android raw sounds.
     // Index 0-4 → water_drop_1..5.wav; anything else (System Default / Custom) → system default.
     private fun soundForIndex(soundIndex: Int): UNNotificationSound {
@@ -48,7 +44,6 @@ class IosAlarmScheduler : AlarmSchedulerContract {
             setTitle("Water Reminder 💧")
             setBody(reminder.message)
             setSound(UNNotificationSound.defaultSound)
-            setThreadIdentifier(threadId)
         }
 
         val dateComponents = NSDateComponents().apply {
@@ -150,7 +145,6 @@ class IosAlarmScheduler : AlarmSchedulerContract {
                 setTitle("Water Reminder 💧")
                 setBody("Time to drink water! Stay hydrated.")
                 setSound(notificationSound)
-                setThreadIdentifier(threadId)
             }
 
             val dateComponents = NSDateComponents().apply {
