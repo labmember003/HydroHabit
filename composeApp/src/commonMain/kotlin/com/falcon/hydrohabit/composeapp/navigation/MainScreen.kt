@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -154,12 +153,12 @@ fun MainScreen(
                         .height(0.5.dp)
                         .background(Color(0xFFD1D1D6))
                 )
-                // windowInsets = 0 so the bar renders as a flat 80dp tab bar like the
-                // Android app module (non-edge-to-edge). Without this, iOS adds the
-                // home-indicator inset below the icons, showing as empty space.
+                // Android keeps the flat non-edge-to-edge tab bar (zero insets); iOS uses
+                // the navigationBars inset so the bar clears the home-indicator strip
+                // instead of the tabs sitting right on top of it.
                 NavigationBar(
                     containerColor = backgroundColor1,
-                    windowInsets = WindowInsets(0, 0, 0, 0)
+                    windowInsets = bottomBarWindowInsets()
                 ) {
                     Screen.entries.forEach { screen ->
                         val selected = screen == currentScreen
