@@ -115,6 +115,7 @@ fun SettingsScreen(
     )
 
     val platformActions = rememberPlatformActions()
+    val exactAlarmState = rememberExactAlarmState()
 
     Column(
         modifier = modifier
@@ -256,6 +257,14 @@ fun SettingsScreen(
             ),
             modifier = Modifier.padding(vertical = 4.dp)
         )
+
+        // Shown only when reminders are on AND the OS is throttling exact timing
+        // (Android 12+ with "Alarms & reminders" access not granted). Tapping opens
+        // the system settings page; the warning hides itself once access is granted.
+        if (profileData.onNotificationChange && exactAlarmState.showPrecisionWarning) {
+            Spacer(modifier = Modifier.height(12.dp))
+            ExactAlarmWarningCard(onClick = exactAlarmState.openExactAlarmSettings)
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -563,6 +572,55 @@ private fun SettingsRow(
                 )
             )
         }
+    }
+}
+
+@Composable
+private fun ExactAlarmWarningCard(onClick: () -> Unit) {
+    val accent = Color(0xFFFF9F0A)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .background(
+                color = accent.copy(alpha = 0.10f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Reminders may be delayed",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = fontFamilyBold,
+                    fontWeight = FontWeight(600),
+                    color = primaryBlack,
+                )
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "Allow precise timing so reminders arrive exactly on schedule.",
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight(400),
+                    color = Color(0xFF8E8E93),
+                )
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = "Fix",
+            style = TextStyle(
+                fontSize = 14.sp,
+                fontFamily = fontFamilyBold,
+                fontWeight = FontWeight(600),
+                color = waterColor,
+            )
+        )
     }
 }
 

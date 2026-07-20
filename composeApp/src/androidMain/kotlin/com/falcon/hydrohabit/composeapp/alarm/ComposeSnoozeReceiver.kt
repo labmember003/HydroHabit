@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 
 class ComposeSnoozeReceiver : BroadcastReceiver() {
 
@@ -18,15 +19,17 @@ class ComposeSnoozeReceiver : BroadcastReceiver() {
         val alarmIntent = Intent(context, ComposeAlarmReceiver::class.java).apply {
             putExtra("waterReminderMessage", "Time to drink water! 💧 Stay hydrated.")
         }
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            System.currentTimeMillis() + 5 * 60 * 1000L,
-            PendingIntent.getBroadcast(
-                context,
-                2000,
-                alarmIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            2000,
+            alarmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val triggerAt = System.currentTimeMillis() + 5 * 60 * 1000L
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+        } else {
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+        }
     }
 }

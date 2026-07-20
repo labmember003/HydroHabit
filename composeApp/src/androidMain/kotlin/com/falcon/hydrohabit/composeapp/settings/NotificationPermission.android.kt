@@ -1,6 +1,8 @@
 package com.falcon.hydrohabit.composeapp.settings
 
 import android.Manifest
+import android.app.AlarmManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -43,6 +45,13 @@ actual fun rememberNotificationPermissionState(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         hasPermission = granted
+        if (granted) {
+            // SCHEDULE_EXACT_ALARM is denied by default on Android 13+. Ask for the
+            // "Alarms & reminders" special access right after the user enables
+            // notifications, so reminders fire at exact times instead of Doze windows.
+            // Until granted, the scheduler falls back to inexact allow-while-idle alarms.
+            requestExactAlarmAccessIfNeeded(context)
+        }
         onPermissionResult(granted)
     }
 
@@ -78,4 +87,18 @@ actual fun rememberNotificationPermissionState(
             context.startActivity(intent)
         }
     )
+}
+
+private fun requestExactAlarmAccessIfNeeded(context: Context) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+    val alarmManager = context.getSystemService(AlarmManager::class.java) ?: return
+    if (alarmManager.canScheduleExactAlarms()) return
+    runCatching {
+        context.startActivity(
+            Intent(
+                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                Uri.fromParts("package", context.packageName, null)
+            )
+        )
+    }
 }

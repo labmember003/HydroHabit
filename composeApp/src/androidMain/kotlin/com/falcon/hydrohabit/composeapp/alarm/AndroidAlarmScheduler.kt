@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import com.falcon.hydrohabit.model.water_reminder.WaterReminder
 import java.util.Calendar
 
@@ -12,6 +13,24 @@ class AndroidAlarmScheduler(
 ) : AlarmSchedulerContract {
 
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
+
+    // SCHEDULE_EXACT_ALARM is denied by default on Android 13+; calling setExact* without
+    // the grant throws SecurityException. Fall back to setAndAllowWhileIdle, which still
+    // fires during Doze (just up to ~15 min late).
+    private fun canUseExactAlarms(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
+
+    private fun setExactCompat(triggerAtMillis: Long, pendingIntent: PendingIntent) {
+        if (canUseExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent
+            )
+        } else {
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent
+            )
+        }
+    }
 
     override fun scheduleRepeating(
         intervalMinutes: Int,
@@ -24,6 +43,11 @@ class AndroidAlarmScheduler(
         // soundIndex is unused on Android: the sound is resolved at display time by
         // ComposeNotificationService via per-sound notification channels.
         cancelAll()
+
+        // One-shot alarms only cover today, so a daily refresh alarm re-runs this
+        // scheduling shortly before tomorrow's wake-up — otherwise reminders stop
+        // on any day the app is not opened.
+        armDailyRefresh(wakeUpHour, wakeUpMinute)
 
         val now = Calendar.getInstance()
         val isOvernightSchedule = bedHour < wakeUpHour || (bedHour == wakeUpHour && bedMinute < wakeUpMinute)
@@ -80,8 +104,7 @@ class AndroidAlarmScheduler(
             val intent = Intent(context, ComposeAlarmReceiver::class.java).apply {
                 putExtra("waterReminderMessage", "Time to drink water! 💧 Stay hydrated.")
             }
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
+            setExactCompat(
                 current.timeInMillis,
                 PendingIntent.getBroadcast(
                     context,
@@ -95,6 +118,34 @@ class AndroidAlarmScheduler(
         }
     }
 
+    // Fires ComposeRescheduleReceiver 3 min before the next wake-up so the whole day
+    // (including the wake-up slot itself) gets scheduled, then re-arms itself.
+    private fun armDailyRefresh(wakeUpHour: Int, wakeUpMinute: Int) {
+        val trigger = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, wakeUpHour)
+            set(Calendar.MINUTE, wakeUpMinute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            add(Calendar.MINUTE, -3)
+            if (timeInMillis <= System.currentTimeMillis()) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+        }
+        setExactCompat(trigger.timeInMillis, dailyRefreshPendingIntent())
+    }
+
+    private fun dailyRefreshPendingIntent(): PendingIntent {
+        val intent = Intent(context, ComposeRescheduleReceiver::class.java).apply {
+            action = ComposeRescheduleReceiver.ACTION_REARM
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            DAILY_REFRESH_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
     override fun cancelAll() {
         for (requestCode in 1000..1050) {
             val intent = Intent(context, ComposeAlarmReceiver::class.java)
@@ -106,6 +157,7 @@ class AndroidAlarmScheduler(
             )
             alarmManager.cancel(pendingIntent)
         }
+        alarmManager.cancel(dailyRefreshPendingIntent())
     }
 
     override fun schedule(reminder: WaterReminder) {
@@ -139,5 +191,9 @@ class AndroidAlarmScheduler(
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )
+    }
+
+    companion object {
+        private const val DAILY_REFRESH_REQUEST_CODE = 999
     }
 }

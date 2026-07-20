@@ -1,12 +1,6 @@
 package com.falcon.hydrohabit.composeapp.alarm
 
 import com.falcon.hydrohabit.model.water_reminder.WaterReminder
-import platform.Foundation.NSCalendar
-import platform.Foundation.NSCalendarUnitDay
-import platform.Foundation.NSCalendarUnitHour
-import platform.Foundation.NSCalendarUnitMinute
-import platform.Foundation.NSCalendarUnitSecond
-import platform.Foundation.NSDate
 import platform.Foundation.NSDateComponents
 import platform.UserNotifications.UNMutableNotificationContent
 import platform.UserNotifications.UNCalendarNotificationTrigger
@@ -87,49 +81,18 @@ class IosAlarmScheduler : AlarmSchedulerContract {
         cancelAll()
         val notificationSound = soundForIndex(soundIndex)
 
-        val calendar = NSCalendar.currentCalendar
-        val now = NSDate()
-        val nowComponents = calendar.components(
-            NSCalendarUnitHour or NSCalendarUnitMinute or NSCalendarUnitDay,
-            fromDate = now
-        )
-        val nowHour = nowComponents.hour.toInt()
-        val nowMinute = nowComponents.minute.toInt()
-
+        // Each slot below is a repeats=true daily calendar trigger, so the ENTIRE
+        // wake→bed window must be scheduled every time — independent of the current
+        // time. iOS fires each slot at its next matching instant (later today if still
+        // ahead, otherwise tomorrow) and then every day after, so it never fires a
+        // past-today slot immediately. Computing the start from "now" (the old code)
+        // permanently dropped earlier slots from the daily schedule, and wiped the
+        // schedule entirely when the app was opened after bedtime.
+        val startTotalMinutes = wakeUpHour * 60 + wakeUpMinute
+        val bedTotalMinutes = bedHour * 60 + bedMinute
         val isOvernightSchedule = bedHour < wakeUpHour ||
                 (bedHour == wakeUpHour && bedMinute < wakeUpMinute)
-
-        val startTotalMinutes: Int
-        val endTotalMinutes: Int
-
-        if (isOvernightSchedule) {
-            val isBeforeBed = nowHour < bedHour || (nowHour == bedHour && nowMinute < bedMinute)
-            if (isBeforeBed) {
-                val nowTotal = nowHour * 60 + nowMinute
-                startTotalMinutes = nowTotal + 1
-                endTotalMinutes = bedHour * 60 + bedMinute
-            } else {
-                val wakeTotal = wakeUpHour * 60 + wakeUpMinute
-                var current = wakeTotal
-                val nowTotal = nowHour * 60 + nowMinute
-                while (current <= nowTotal) {
-                    current += intervalMinutes
-                }
-                startTotalMinutes = current
-                endTotalMinutes = (bedHour + 24) * 60 + bedMinute
-            }
-        } else {
-            val wakeTotal = wakeUpHour * 60 + wakeUpMinute
-            val nowTotal = nowHour * 60 + nowMinute
-            var current = wakeTotal
-            if (nowTotal > wakeTotal) {
-                while (current <= nowTotal) {
-                    current += intervalMinutes
-                }
-            }
-            startTotalMinutes = current
-            endTotalMinutes = bedHour * 60 + bedMinute
-        }
+        val endTotalMinutes = if (isOvernightSchedule) bedTotalMinutes + 24 * 60 else bedTotalMinutes
 
         if (startTotalMinutes >= endTotalMinutes) return
 
