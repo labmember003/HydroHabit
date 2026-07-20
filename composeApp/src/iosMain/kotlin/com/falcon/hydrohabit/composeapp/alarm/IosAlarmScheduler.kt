@@ -4,14 +4,31 @@ import com.falcon.hydrohabit.model.water_reminder.WaterReminder
 import platform.Foundation.NSDateComponents
 import platform.UserNotifications.UNMutableNotificationContent
 import platform.UserNotifications.UNCalendarNotificationTrigger
+import platform.UserNotifications.UNNotification
+import platform.UserNotifications.UNNotificationPresentationOptionBanner
+import platform.UserNotifications.UNNotificationPresentationOptionList
+import platform.UserNotifications.UNNotificationPresentationOptionSound
+import platform.UserNotifications.UNNotificationPresentationOptions
 import platform.UserNotifications.UNNotificationRequest
+import platform.UserNotifications.UNNotificationResponse
 import platform.UserNotifications.UNNotificationSound
 import platform.UserNotifications.UNUserNotificationCenter
+import platform.UserNotifications.UNUserNotificationCenterDelegateProtocol
+import platform.darwin.NSObject
 
 class IosAlarmScheduler : AlarmSchedulerContract {
 
     private val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
     private val idPrefix = "water_reminder_"
+
+    // Held as a strong reference for the app's lifetime (this scheduler is a Koin
+    // singleton). Without a delegate, iOS silently drops any reminder that fires while
+    // the app is in the foreground, so it would never appear while Droply is open.
+    private val foregroundDelegate = ForegroundNotificationDelegate()
+
+    init {
+        notificationCenter.setDelegate(foregroundDelegate)
+    }
 
     // Maps the selected sound index to a bundled WAV, matching the Android raw sounds.
     // Index 0-4 → water_drop_1..5.wav; anything else (System Default / Custom) → system default.
@@ -25,10 +42,8 @@ class IosAlarmScheduler : AlarmSchedulerContract {
             else -> null
         }
         return if (fileName != null) {
-            println("IosAlarmScheduler: using custom sound '$fileName' for index $soundIndex")
             UNNotificationSound.soundNamed(fileName)
         } else {
-            println("IosAlarmScheduler: using default system sound for index $soundIndex")
             UNNotificationSound.defaultSound
         }
     }
@@ -57,11 +72,7 @@ class IosAlarmScheduler : AlarmSchedulerContract {
             trigger = trigger
         )
 
-        notificationCenter.addNotificationRequest(request) { error ->
-            if (error != null) {
-                println("iOS: Failed to schedule notification: ${error.localizedDescription}")
-            }
-        }
+        notificationCenter.addNotificationRequest(request) { }
     }
 
     override fun cancel(reminder: WaterReminder) {
@@ -127,11 +138,7 @@ class IosAlarmScheduler : AlarmSchedulerContract {
                 trigger = trigger
             )
 
-            notificationCenter.addNotificationRequest(request) { error ->
-                if (error != null) {
-                    println("iOS: Failed to schedule notification: ${error.localizedDescription}")
-                }
-            }
+            notificationCenter.addNotificationRequest(request) { }
 
             count++
             currentMinutes += intervalMinutes
@@ -140,5 +147,30 @@ class IosAlarmScheduler : AlarmSchedulerContract {
 
     override fun cancelAll() {
         notificationCenter.removeAllPendingNotificationRequests()
+    }
+}
+
+// Presents reminders even when the app is in the foreground; iOS otherwise silently
+// drops any notification that fires while the app is open.
+private class ForegroundNotificationDelegate : NSObject(), UNUserNotificationCenterDelegateProtocol {
+
+    override fun userNotificationCenter(
+        center: UNUserNotificationCenter,
+        willPresentNotification: UNNotification,
+        withCompletionHandler: (UNNotificationPresentationOptions) -> Unit
+    ) {
+        withCompletionHandler(
+            UNNotificationPresentationOptionBanner or
+                UNNotificationPresentationOptionList or
+                UNNotificationPresentationOptionSound
+        )
+    }
+
+    override fun userNotificationCenter(
+        center: UNUserNotificationCenter,
+        didReceiveNotificationResponse: UNNotificationResponse,
+        withCompletionHandler: () -> Unit
+    ) {
+        withCompletionHandler()
     }
 }
