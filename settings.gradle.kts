@@ -14,6 +14,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "HydroHabit"
-include(":app")
 include(":shared")
 include(":composeApp")
