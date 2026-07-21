@@ -56,11 +56,11 @@ configurations.all {
 }
 
 android {
-    namespace = "com.falcon.hydrohabit.composeapp"
+    namespace = "com.falcon.hydrohabit"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.falcon.hydrohabit.composeapp"
+        applicationId = "com.falcon.hydrohabit"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
