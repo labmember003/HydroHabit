@@ -76,7 +76,9 @@ import org.jetbrains.compose.resources.DrawableResource
 @Composable
 fun HomeScreenHost(
     onboardingRepo: OnboardingRepositoryContract,
-    alarmScheduler: AlarmSchedulerContract
+    alarmScheduler: AlarmSchedulerContract,
+    shouldOpenAddWater: Boolean = false,
+    onAddWaterHandled: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
 
@@ -156,6 +158,14 @@ fun HomeScreenHost(
     // --- Update progress message ---
     LaunchedEffect(waterPercent) {
         onProgress = getStreakMessage(waterPercent)
+    }
+
+    // --- Open add water dialog when triggered from notification ---
+    LaunchedEffect(shouldOpenAddWater) {
+        if (shouldOpenAddWater) {
+            onWaterAddSheet = true
+            onAddWaterHandled()
+        }
     }
 
     // --- Add water handler ---

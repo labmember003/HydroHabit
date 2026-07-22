@@ -51,7 +51,9 @@ private enum class OnboardingStep {
 fun App(
     appPrefsRepo: AppPreferencesRepository,
     onboardingRepo: OnboardingRepositoryContract,
-    alarmScheduler: AlarmSchedulerContract
+    alarmScheduler: AlarmSchedulerContract,
+    shouldOpenAddWater: Boolean = false,
+    onAddWaterHandled: () -> Unit = {}
 ) {
     val prefs by appPrefsRepo.cachedPreferences.collectAsState()
 
@@ -60,7 +62,9 @@ fun App(
             MainScreen(
                 appPrefsRepo = appPrefsRepo,
                 onboardingRepo = onboardingRepo,
-                alarmScheduler = alarmScheduler
+                alarmScheduler = alarmScheduler,
+                shouldOpenAddWater = shouldOpenAddWater,
+                onAddWaterHandled = onAddWaterHandled
             )
         } else {
             OnboardingFlow(appPrefsRepo, onboardingRepo)

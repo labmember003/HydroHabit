@@ -77,7 +77,9 @@ private enum class Screen(val label: String, val icon: ImageVector) {
 fun MainScreen(
     appPrefsRepo: AppPreferencesRepository,
     onboardingRepo: OnboardingRepositoryContract,
-    alarmScheduler: AlarmSchedulerContract
+    alarmScheduler: AlarmSchedulerContract,
+    shouldOpenAddWater: Boolean = false,
+    onAddWaterHandled: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val appPrefs by appPrefsRepo.cachedPreferences.collectAsState()
@@ -85,6 +87,14 @@ fun MainScreen(
         .collectAsState(initial = UserSettings())
 
     var currentScreen by remember { mutableStateOf(Screen.Home) }
+
+    // Notification "Drink" action lands here — make sure the Home tab (which owns
+    // the water picker dialog) is showing so the dialog can appear.
+    LaunchedEffect(shouldOpenAddWater) {
+        if (shouldOpenAddWater) {
+            currentScreen = Screen.Home
+        }
+    }
 
     // Notification / settings state (hoisted here so the permission dialog and the
     // ON_RESUME re-check are always active while the app is running — matching the
@@ -212,7 +222,9 @@ fun MainScreen(
                 Screen.Home -> {
                     HomeScreenHost(
                         onboardingRepo = onboardingRepo,
-                        alarmScheduler = alarmScheduler
+                        alarmScheduler = alarmScheduler,
+                        shouldOpenAddWater = shouldOpenAddWater,
+                        onAddWaterHandled = onAddWaterHandled
                     )
                 }
                 Screen.Settings -> {
