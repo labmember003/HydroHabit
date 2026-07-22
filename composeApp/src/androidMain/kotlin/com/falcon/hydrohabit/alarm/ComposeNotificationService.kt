@@ -20,6 +20,7 @@ class ComposeNotificationService(
 
     companion object {
         const val CHANNEL_ID_PREFIX = "water_reminder_sound_"
+        const val NOTIFICATION_ID = 1001
     }
 
     private fun getChannelId(soundIndex: Int): String {
@@ -119,6 +120,6 @@ class ComposeNotificationService(
             .addAction(0, "Drink", drinkPendingIntent)
             .addAction(0, "Snooze 5m", snoozePendingIntent)
 
-        notificationManager.notify(1001, builder.build())
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 }
