@@ -31,6 +31,7 @@ import com.falcon.hydrohabit.ui.theme.waterColorBackground
 import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.features.homescreen.usecase.currentTimeInfo
+import com.falcon.hydrohabit.features.onboarding.usecase.Gender
 import com.falcon.hydrohabit.features.onboarding.usecase.WaterIntakeCalculator
 import com.falcon.hydrohabit.features.onboarding.utils.BodyMeasurementData
 import com.falcon.hydrohabit.features.onboarding.utils.activityMeasurementData
@@ -84,6 +85,7 @@ private fun OnboardingFlow(
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var weightUnit by remember { mutableStateOf(WeightUnit.KG) }
+    var gender by remember { mutableStateOf<Gender?>(null) }
     var weightError by remember { mutableStateOf(false) }
     var heightError by remember { mutableStateOf(false) }
 
@@ -121,11 +123,13 @@ private fun OnboardingFlow(
                     onHeightError = "Please enter a valid height"
                 ),
                 weightUnit = weightUnit,
+                selectedGender = gender,
                 getWeightUnitChange = {
                     weightUnit = it
                     weightError = false
                     scope.launch { appPrefsRepo.setWeightUnit(it.name) }
                 },
+                getGenderChange = { gender = it },
                 getWeightChange = { weight = it; weightError = false },
                 getHeightChange = { height = it; heightError = false },
                 getNavigate = {
@@ -155,12 +159,7 @@ private fun OnboardingFlow(
                     } else {
                         val h = height.toFloatOrNull() ?: 170f
                         val w = weight.toFloatOrNull()?.let { weightUnit.toKg(it) } ?: 70f
-                        val activityPercentage = when (activityLevel) {
-                            0 -> 50
-                            1 -> 35
-                            else -> 20
-                        }
-                        waterIntake = "${WaterIntakeCalculator.calculateWaterIntake(h.toInt(), w.toInt(), activityPercentage)} ml"
+                        waterIntake = "${WaterIntakeCalculator.calculateWaterIntake(h.toInt(), w.toInt(), activityLevel, gender ?: Gender.UNSPECIFIED)} ml"
                         currentStep = OnboardingStep.Loading
                     }
                 },
@@ -210,6 +209,8 @@ private fun OnboardingFlow(
                             userWeight = w,
                             onBoardingCompleted = true
                         )
+                        appPrefsRepo.setActivityLevel(activityLevel)
+                        appPrefsRepo.setGender(gender ?: Gender.UNSPECIFIED)
                         appPrefsRepo.setWakeUpTime(wakeUpHour, 0)
                         appPrefsRepo.setBedTime(bedHour, 0)
                         currentStep = OnboardingStep.NotificationPermission

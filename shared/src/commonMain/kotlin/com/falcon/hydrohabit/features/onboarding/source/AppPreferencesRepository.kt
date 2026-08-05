@@ -3,6 +3,7 @@ package com.falcon.hydrohabit.features.onboarding.source
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.okio.OkioStorage
+import com.falcon.hydrohabit.features.onboarding.usecase.Gender
 import com.falcon.hydrohabit.model.storage_utils.OkioSerializerAppPreferences
 import com.falcon.hydrohabit.model.storage_utils.dataStorePath
 import kotlinx.coroutines.CoroutineScope
@@ -79,6 +80,14 @@ class AppPreferencesRepository(private val context: Any?) {
 
     suspend fun setWeightUnit(unit: String) {
         prefsStore.updateData { it.copy(weightUnit = unit) }
+    }
+
+    suspend fun setActivityLevel(level: Int) {
+        prefsStore.updateData { it.copy(activityLevel = level) }
+    }
+
+    suspend fun setGender(gender: Gender) {
+        prefsStore.updateData { it.copy(gender = gender.name) }
     }
 
     /** Bulk update (for migration or settings screen) */

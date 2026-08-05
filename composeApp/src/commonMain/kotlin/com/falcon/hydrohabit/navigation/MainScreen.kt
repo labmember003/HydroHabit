@@ -251,9 +251,29 @@ fun MainScreen(
                         ),
                         heightCm = userSettings.userHeight,
                         weightKg = userSettings.userWeight,
+                        gender = appPrefs.userGender,
                         initialWeightUnit = runCatching { WeightUnit.valueOf(appPrefs.weightUnit) }
                             .getOrDefault(WeightUnit.KG),
                         getWeightUnitChange = { scope.launch { appPrefsRepo.setWeightUnit(it.name) } },
+                        getGenderChange = { newGender ->
+                            scope.launch {
+                                appPrefsRepo.setGender(newGender)
+                                val newIntake = WaterIntakeCalculator.calculateWaterIntake(
+                                    userSettings.userHeight, userSettings.userWeight, appPrefs.activityLevel, newGender
+                                )
+                                onboardingRepo.updateUserSettingsStore(
+                                    userHeight = userSettings.userHeight,
+                                    userWaterIntake = newIntake,
+                                    userName = userSettings.userName,
+                                    userWeight = userSettings.userWeight,
+                                    onBoardingCompleted = true
+                                )
+                                val current = onboardingRepo.getWaterAmount().first()
+                                onboardingRepo.updateWaterAmount(
+                                    current.onUsedWater, newIntake, current.onWaterDay
+                                )
+                            }
+                        },
                         getNotificationChange = { enabled ->
                             if (enabled) {
                                 if (permissionState.hasPermission) {
@@ -298,7 +318,7 @@ fun MainScreen(
                         getHeightChange = { newHeight ->
                             scope.launch {
                                 val newIntake = WaterIntakeCalculator.calculateWaterIntake(
-                                    newHeight, userSettings.userWeight, 35
+                                    newHeight, userSettings.userWeight, appPrefs.activityLevel, appPrefs.userGender
                                 )
                                 onboardingRepo.updateUserSettingsStore(
                                     userHeight = newHeight,
@@ -316,7 +336,7 @@ fun MainScreen(
                         getWeightChange = { newWeight ->
                             scope.launch {
                                 val newIntake = WaterIntakeCalculator.calculateWaterIntake(
-                                    userSettings.userHeight, newWeight, 35
+                                    userSettings.userHeight, newWeight, appPrefs.activityLevel, appPrefs.userGender
                                 )
                                 onboardingRepo.updateUserSettingsStore(
                                     userHeight = userSettings.userHeight,

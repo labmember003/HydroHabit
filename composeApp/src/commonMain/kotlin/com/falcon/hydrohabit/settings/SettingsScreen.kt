@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.falcon.hydrohabit.features.onboarding.usecase.Gender
 import com.falcon.hydrohabit.onboarding.components.WeightUnit
 import com.falcon.hydrohabit.onboarding.components.WeightUnitSelector
 import com.falcon.hydrohabit.onboarding.components.fromKg
@@ -67,6 +68,14 @@ val intervalMinutesMap = buildList {
     addAll(listOf(30, 60, 120, 180, 240))
 }
 
+private val genderOptions = listOf(Gender.MALE, Gender.FEMALE, Gender.UNSPECIFIED)
+
+private fun Gender.label(): String = when (this) {
+    Gender.MALE -> "Male"
+    Gender.FEMALE -> "Female"
+    Gender.UNSPECIFIED -> "Prefer not to say"
+}
+
 private fun formatTime(hour: Int, minute: Int = 0): String {
     val min = minute.toString().padStart(2, '0')
     return when {
@@ -83,8 +92,10 @@ fun SettingsScreen(
     profileData: ProfileData,
     heightCm: Int,
     weightKg: Int,
+    gender: Gender,
     initialWeightUnit: WeightUnit = WeightUnit.KG,
     getWeightUnitChange: (WeightUnit) -> Unit = {},
+    getGenderChange: (Gender) -> Unit,
     getNotificationChange: (Boolean) -> Unit,
     getIntervalChange: (Int) -> Unit,
     getWakeUpHourChange: (Int, Int) -> Unit,
@@ -100,6 +111,7 @@ fun SettingsScreen(
     var showSoundDialog by remember { mutableStateOf(false) }
     var showHeightDialog by remember { mutableStateOf(false) }
     var showWeightDialog by remember { mutableStateOf(false) }
+    var showGenderDialog by remember { mutableStateOf(false) }
 
     val customSoundPicker = rememberCustomSoundPicker(
         existingUri = profileData.customSoundUri,
@@ -162,6 +174,15 @@ fun SettingsScreen(
                 "$display ${initialWeightUnit.label.lowercase()}"
             } else "Not set",
             onClick = { showWeightDialog = true }
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Gender
+        SettingsRow(
+            title = "Gender",
+            value = gender.label(),
+            onClick = { showGenderDialog = true }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -392,6 +413,21 @@ fun SettingsScreen(
                 showWeightDialog = false
             },
             onDismiss = { showWeightDialog = false }
+        )
+    }
+
+    // Gender Picker Dialog
+    if (showGenderDialog) {
+        OptionPickerDialog(
+            title = "Gender",
+            subtitle = "Used to personalize your daily hydration goal",
+            options = genderOptions.map { it.label() },
+            currentIndex = genderOptions.indexOf(gender).coerceAtLeast(0),
+            onSelect = { index ->
+                getGenderChange(genderOptions[index])
+                showGenderDialog = false
+            },
+            onDismiss = { showGenderDialog = false }
         )
     }
 }
