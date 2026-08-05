@@ -28,8 +28,10 @@ import androidx.compose.ui.unit.sp
 import com.falcon.hydrohabit.onboarding.components.OnboardingIndicator
 import com.falcon.hydrohabit.onboarding.components.SingleButton
 import com.falcon.hydrohabit.onboarding.components.TextFieldCustom
+import com.falcon.hydrohabit.onboarding.components.GenderSelector
 import com.falcon.hydrohabit.onboarding.components.WeightUnit
 import com.falcon.hydrohabit.onboarding.components.WeightUnitSelector
+import com.falcon.hydrohabit.features.onboarding.usecase.Gender
 import com.falcon.hydrohabit.ui.theme.fontFamily
 import com.falcon.hydrohabit.ui.theme.fontFamilyLight
 import com.falcon.hydrohabit.ui.theme.onboardingBoxColor
@@ -42,7 +44,9 @@ fun OnBoardingBodyMeasurementsScreen(
     modifier: Modifier = Modifier,
     bodyMeasurementData: BodyMeasurementData,
     weightUnit: WeightUnit,
+    selectedGender: Gender?,
     getWeightUnitChange: (WeightUnit) -> Unit,
+    getGenderChange: (Gender) -> Unit,
     getWeightChange: (String) -> Unit,
     getHeightChange: (String) -> Unit,
     getNavigate: () -> Unit,
@@ -74,7 +78,7 @@ fun OnBoardingBodyMeasurementsScreen(
                 )
                 Spacer(modifier = Modifier.height(22.dp))
                 Text(
-                    text = "Please enter your weight and height. This helps us recommend the right hydration plan for you!",
+                    text = "A few details about your body let us recommend the right hydration plan for you!",
                     style = TextStyle(
                         fontSize = 15.sp,
                         fontFamily = fontFamilyLight,
@@ -106,7 +110,7 @@ fun OnBoardingBodyMeasurementsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "What is your height and weight?",
+                    text = "Tell us about yourself",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontFamily = fontFamily,
@@ -146,6 +150,21 @@ fun OnBoardingBodyMeasurementsScreen(
                     onImeAction = ImeAction.Done,
                     onKeyboardType = KeyboardType.Number
                 )
+
+                Spacer(modifier = Modifier.height(18.dp))
+                Text(
+                    text = "Gender",
+                    style = TextStyle(
+                        fontSize = 13.sp,
+                        fontFamily = fontFamilyLight,
+                        fontWeight = FontWeight(400),
+                        color = primaryBlackLight,
+                        textAlign = TextAlign.Start,
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                GenderSelector(selected = selectedGender, onSelected = getGenderChange)
 
                 Spacer(modifier = Modifier.height(25.dp))
                 SingleButton(getNavigate = { getNavigate() }, buttonName = "Next")

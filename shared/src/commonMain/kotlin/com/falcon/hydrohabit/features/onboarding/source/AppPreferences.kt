@@ -1,5 +1,7 @@
 package com.falcon.hydrohabit.features.onboarding.source
 
+import com.falcon.hydrohabit.features.onboarding.usecase.Gender
+import com.falcon.hydrohabit.features.onboarding.usecase.WaterIntakeCalculator
 import kotlinx.serialization.Serializable
 
 /**
@@ -26,5 +28,9 @@ data class AppPreferences(
     val notificationSoundIndex: Int = 0,
     val customSoundUri: String? = null,
     val weightUnit: String = "KG",
-)
+    val activityLevel: Int = WaterIntakeCalculator.ACTIVITY_MODERATE,
+    val gender: String = Gender.UNSPECIFIED.name,
+) {
+    val userGender: Gender get() = Gender.fromName(gender)
+}
 

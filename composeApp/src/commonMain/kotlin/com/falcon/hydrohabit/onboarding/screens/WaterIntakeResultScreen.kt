@@ -81,6 +81,20 @@ fun OnBoardingWaterIntakeResultScreen(
                 ),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Based on Institute of Medicine reference intakes for your " +
+                    "body size and activity. An estimate for healthy adults, not medical advice. " +
+                    "Update your height or weight in Settings and this adjusts automatically.",
+                style = TextStyle(
+                    fontSize = 11.sp,
+                    fontFamily = fontFamilyLight,
+                    fontWeight = FontWeight(200),
+                    color = primaryBlackLight,
+                    textAlign = TextAlign.Center,
+                ),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp)
+            )
         }
         OnboardingIndicator(onboardingNav = 2)
         OnBoardingButtons(getNavigate, getBack)
