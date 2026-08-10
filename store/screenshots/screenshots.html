@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Droply — Store Screenshot Builder</title>
+<style>
+  :root{
+    --water:#007AFF;      /* Droply brand blue */
+    --water-2:#0A5BD6;    /* deeper blue for gradient */
+    --ink:#0B2447;        /* caption text */
+    --canvas-w:1320px;    /* iOS 6.9" + Play-safe width  */
+    --canvas-h:2868px;    /* iOS 6.9" + Play-safe height */
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9eef5;font-family:-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;padding:40px;display:flex;flex-wrap:wrap;gap:40px;justify-content:center}
+
+  /* Each store panel is EXACT store resolution. Zoomed down only for preview. */
+  .panel{
+    width:var(--canvas-w);height:var(--canvas-h);
+    background:linear-gradient(160deg,var(--water) 0%,var(--water-2) 100%);
+    border-radius:24px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;align-items:center;
+    transform:scale(.24);transform-origin:top left;   /* preview only; ignored by node-capture */
+    margin:0 -1000px -2170px 0;                        /* collapse the scaled gap for preview */
+  }
+  .caption{
+    width:100%;padding:130px 96px 0;text-align:center;color:#fff;
+  }
+  .caption h1{font-size:104px;line-height:1.12;font-weight:800;letter-spacing:-1px}
+  .caption p{font-size:46px;margin-top:28px;font-weight:500;opacity:.9}
+
+  /* Phone mock holding the REAL screenshot, unedited */
+  .phone{
+    margin-top:120px;width:1020px;border-radius:96px;
+    background:#0b0b0d;padding:26px;
+    box-shadow:0 60px 120px rgba(0,0,0,.35);
+  }
+  .phone .screen{
+    width:100%;border-radius:72px;overflow:hidden;display:block;background:#000;
+    aspect-ratio:1179/2556;               /* iPhone screen aspect; your shot fills it */
+  }
+  .phone .screen img{width:100%;height:100%;object-fit:cover;display:block}
+
+  .hint{position:fixed;top:8px;left:8px;background:#0B2447;color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;max-width:520px;z-index:99;line-height:1.4}
+  .hint code{background:#12345f;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="hint">
+  <b>Export at exact store size:</b> open DevTools (⌥⌘I) → in Elements pick a <code>&lt;section class="panel"&gt;</code> → right-click →
+  <b>Capture node screenshot</b>. You get a clean 1320×2868 PNG (accepted by App Store 6.9" AND Google Play). Repeat for all 6.
+  Put your shots in this folder named <code>1.png</code> … <code>6.png</code>.
+</div>
+
+<!-- 1 -->
+<section class="panel">
+  <div class="caption"><h1>Hit your daily water goal</h1></div>
+  <div class="phone"><div class="screen"><img src="1.png" alt=""></div></div>
+</section>
+
+<!-- 2 -->
+<section class="panel">
+  <div class="caption"><h1>Log water in one tap</h1></div>
+  <div class="phone"><div class="screen"><img src="2.png" alt=""></div></div>
+</section>
+
+<!-- 3 -->
+<section class="panel">
+  <div class="caption"><h1>Reminders that fit your day</h1></div>
+  <div class="phone"><div class="screen"><img src="3.png" alt=""></div></div>
+</section>
+
+<!-- 4 -->
+<section class="panel">
+  <div class="caption"><h1>Build a streak.<br>Earn badges.</h1></div>
+  <div class="phone"><div class="screen"><img src="4.png" alt=""></div></div>
+</section>
+
+<!-- 5 -->
+<section class="panel">
+  <div class="caption"><h1>Celebrate every goal you hit</h1></div>
+  <div class="phone"><div class="screen"><img src="5.png" alt=""></div></div>
+</section>
+
+<!-- 6 -->
+<section class="panel">
+  <div class="caption"><h1>A goal made for your body</h1></div>
+  <div class="phone"><div class="screen"><img src="6.png" alt=""></div></div>
+</section>
+
+</body>
+</html>
