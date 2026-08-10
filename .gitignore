@@ -32,6 +32,10 @@ build/
 google-services.json
 GoogleService-Info.plist
 
+# Signing keys
+*.jks
+*.keystore
+
 # OS files
 Thumbs.db
 *.swp
