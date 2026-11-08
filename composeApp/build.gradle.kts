@@ -67,8 +67,26 @@ android {
         versionName = "1.0"
     }
 
+    // Release signing is configured from environment variables so the keystore and
+    // passwords never live in the repo. CI (.github/workflows/release.yml) sets these;
+    // locally, leave them unset and sign from Android Studio as usual.
+    val releaseKeystorePath: String? = System.getenv("ANDROID_KEYSTORE_PATH")
+    signingConfigs {
+        if (releaseKeystorePath != null) {
+            create("release") {
+                storeFile = file(releaseKeystorePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (releaseKeystorePath != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

@@ -1,6 +1,36 @@
-Droply (Jetpack Compose-based Water Tracking app)
+<h1 align="center">Droply</h1>
+
+<p align="center"><b>Water Tracker &amp; Drink Water Reminder for Android and iOS</b></p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.falcon.hydrohabit"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/labmember003/HydroHabit/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/labmember003/HydroHabit?include_prereleases&label=release"></a>
+  <a href="https://github.com/labmember003/HydroHabit/actions/workflows/release.yml"><img alt="Release build" src="https://github.com/labmember003/HydroHabit/actions/workflows/release.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: GPL-3.0" src="https://img.shields.io/github/license/labmember003/HydroHabit"></a>
+</p>
 
 Welcome to Droply, an open-source water-tracking app developed using Jetpack Compose and Kotlin. Droply is a simple water-tracking app that helps users develop a habit of tracking their water. It also has habit charts and goals that help them remain healthy and inculcate good habits in their lives.
+
+## Screenshots
+
+<p align="center">
+  <img src="Droply-PlayStore-Assets/Screenshots/1.png" width="30%" alt="Home screen showing today's progress toward the water goal">
+  <img src="Droply-PlayStore-Assets/Screenshots/2.png" width="30%" alt="Add Water dialog for logging an amount in one tap">
+  <img src="Droply-PlayStore-Assets/Screenshots/3.png" width="30%" alt="Settings with reminder interval, wake-up and bed times">
+</p>
+<p align="center">
+  <img src="Droply-PlayStore-Assets/Screenshots/4.png" width="30%" alt="Achievements sheet with streak badges">
+  <img src="Droply-PlayStore-Assets/Screenshots/5.png" width="30%" alt="Celebration shown when the daily goal is reached">
+  <img src="Droply-PlayStore-Assets/Screenshots/6.png" width="30%" alt="Onboarding result with a personalised daily water goal">
+</p>
+
+## Download
+
+- **Android:** [Google Play](https://play.google.com/store/apps/details?id=com.falcon.hydrohabit), or the APK attached to the [latest GitHub release](https://github.com/labmember003/HydroHabit/releases/latest).
+- **iOS:** each [GitHub release](https://github.com/labmember003/HydroHabit/releases/latest) includes an unsigned `.ipa`. Sideload it with [AltStore](https://altstore.io) or [Sideloadly](https://sideloadly.io), which sign it with your own Apple ID.
 
 ### Droply Features
 
@@ -12,6 +42,26 @@ Welcome to Droply, an open-source water-tracking app developed using Jetpack Com
 - **Dark Mode Support:** Seamlessly switch between light and dark modes for comfortable usage.
 - **Rewards:** Animation Reward for drinking water
 - **BMI:** Settings to Track your BMI
+
+## Releasing
+
+Pushing a version tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the Android APK and the iOS IPA and attaches both to a GitHub Release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Tags containing a hyphen (for example `v1.1.0-beta1`) are published as pre-releases. To build both files without publishing a release, open **Actions → Release → Run workflow**; the files are attached to the run as artifacts.
+
+**Android signing:** add these repository secrets (Settings → Secrets and variables → Actions) so the APK is signed with your own key. Without them, CI signs it with a temporary key.
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | Output of `base64 -i your-release.jks` |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Key alias |
+| `ANDROID_KEY_PASSWORD` | Key password (optional if it matches the keystore password) |
 
 ---
 
