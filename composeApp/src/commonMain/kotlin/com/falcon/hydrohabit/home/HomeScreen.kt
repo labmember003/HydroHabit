@@ -170,6 +170,7 @@ fun HomeScreen(
             ) {
                 StreakSheet(
                     streak = streakImages,
+                    currentStreak = onStreak.toIntOrNull() ?: 0,
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(0.55f)
@@ -181,7 +182,11 @@ fun HomeScreen(
 }
 
 @Composable
-fun StreakSheet(streak: List<DrawableResource>, modifier: Modifier = Modifier) {
+fun StreakSheet(
+    streak: List<DrawableResource>,
+    currentStreak: Int,
+    modifier: Modifier = Modifier
+) {
 
     data class Achievement(
         val title: String,
@@ -201,8 +206,6 @@ fun StreakSheet(streak: List<DrawableResource>, modifier: Modifier = Modifier) {
         Achievement("100-Day Hero", "100 day streak", "💎", 100, null),
         Achievement("365-Day Champion", "Full year streak!", "🔥", 365, null),
     )
-
-    val currentStreak = streak.size
 
     Box(modifier = modifier) {
         Column {
