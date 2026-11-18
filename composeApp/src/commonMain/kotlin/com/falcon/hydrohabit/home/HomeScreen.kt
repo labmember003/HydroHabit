@@ -307,7 +307,7 @@ fun StreakSheet(
                                     )
                                 } else {
                                     Text(
-                                        text = "${achievement.requiredDays - currentStreak} days to go",
+                                        text = (achievement.requiredDays - currentStreak).let { left -> if (left == 1) "1 day to go" else "$left days to go" },
                                         style = TextStyle(
                                             fontSize = 11.sp,
                                             fontFamily = fontFamilyLight,
