@@ -24,6 +24,8 @@
 	<true/>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Droply only saves the water you log to Health. It never reads any of your Health data.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Droply saves each drink you log to Health as Water, so your intake appears alongside your other health data.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
