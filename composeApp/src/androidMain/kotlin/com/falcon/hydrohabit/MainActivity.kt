@@ -1,5 +1,8 @@
 package com.falcon.hydrohabit
 
+import com.falcon.hydrohabit.features.history.source.IntakeLogRepository
+import com.falcon.hydrohabit.tracking.HealthSync
+import com.falcon.hydrohabit.tracking.HydrationTracker
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -23,6 +26,9 @@ class MainActivity : ComponentActivity() {
     private val appPrefsRepo: AppPreferencesRepository by inject()
     private val onboardingRepo: OnboardingRepositoryContract by inject()
     private val alarmScheduler: AlarmSchedulerContract by inject()
+    private val tracker: HydrationTracker by inject()
+    private val intakeLogRepo: IntakeLogRepository by inject()
+    private val healthSync: HealthSync by inject()
 
     // Set when the notification's "Drink" action opens the app, so the water
     // picker dialog is shown on launch (matches app module behavior).
@@ -40,6 +46,9 @@ class MainActivity : ComponentActivity() {
                     appPrefsRepo,
                     onboardingRepo,
                     alarmScheduler,
+                    tracker,
+                    intakeLogRepo,
+                    healthSync,
                     shouldOpenAddWater = shouldOpenAddWater.value,
                     onAddWaterHandled = { shouldOpenAddWater.value = false }
                 )

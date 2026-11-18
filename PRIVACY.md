@@ -1,6 +1,6 @@
 # Droply Privacy Policy
 
-_Effective: November 8, 2026_
+_Effective: November 18, 2026_
 
 Droply ("the app") is a water-tracking app published by Falcon Digital for Android and iOS. This policy explains what the app does with your information.
 
@@ -13,11 +13,19 @@ Droply does not collect, transmit, sell or share any personal data. Everything y
 To calculate a daily water goal and track your progress, the app stores the following **on your device only**:
 
 - Height, weight, gender and activity level
-- Water intake logs, streaks and unlocked achievements
+- Every drink you log (amount and time), your daily totals, streaks and unlocked achievements
 - Reminder settings (interval, wake-up time, bedtime, notification sound)
 - Display preferences such as units
 
 This information is never sent to us or to any third party. The app has no accounts, no sign-in and no server.
+
+## Apple Health (iOS, optional)
+
+If you turn on **Settings → Save drinks to Health**, each drink you log is also saved to the Apple Health app on your iPhone as Water, and deleting a drink in Droply removes it from Health. Droply only writes Water to Health; it does not read any Health data. Health data is managed by Apple on your device and is never sent to us. You can turn this off at any time in Droply's Settings or in the Health app.
+
+## Siri and Shortcuts (iOS)
+
+The "Log Water" and "Today's Water" actions run on your device and use the same local data as the app. Nothing is sent to us.
 
 ## Notifications
 

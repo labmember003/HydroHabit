@@ -41,11 +41,27 @@ kotlin {
             implementation("io.github.alexzhirkevich:compottie-resources:2.0.0-rc01")
         }
 
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+        }
+
+        // Compose UI tests run on the iOS simulator (./gradlew :composeApp:iosSimulatorArm64Test).
+        iosTest.dependencies {
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
+        }
+
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.9.0")
             implementation("io.insert-koin:koin-android:3.5.4-RC1")
         }
     }
+}
+
+// UI tests boot this simulator (a 6.9" iPhone, the size App Store screenshots use).
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
+    device.set("iPhone 18 Pro Max")
 }
 
 configurations.all {

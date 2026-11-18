@@ -37,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -104,6 +106,10 @@ fun SettingsScreen(
     onCustomSoundPicked: (String) -> Unit,
     getHeightChange: (Int) -> Unit,
     getWeightChange: (Int) -> Unit,
+    /** Name of the health app to sync with ("Apple Health"), or null to hide the section. */
+    healthProviderName: String? = null,
+    healthSyncEnabled: Boolean = false,
+    onHealthSyncChange: (Boolean) -> Unit = {},
 ) {
     var showIntervalDialog by remember { mutableStateOf(false) }
     var showWakeUpDialog by remember { mutableStateOf(false) }
@@ -288,6 +294,66 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        if (healthProviderName != null) {
+            SectionHeader(healthProviderName)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Save drinks to Health",
+                    modifier = Modifier.weight(1f),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight(400),
+                        color = primaryBlack,
+                    )
+                )
+                Switch(
+                    checked = healthSyncEnabled,
+                    onCheckedChange = onHealthSyncChange,
+                    modifier = Modifier.semantics { contentDescription = "Save drinks to $healthProviderName" },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = waterColor,
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = Color(0xFFE9E9EB),
+                        uncheckedBorderColor = Color.Transparent,
+                    ),
+                    thumbContent = if (healthSyncEnabled) {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(SwitchDefaults.IconSize)
+                            )
+                        }
+                    } else {
+                        null
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Each drink you log is also saved to $healthProviderName as Water. Deleting a drink in History removes it there too.",
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight(400),
+                    color = Color(0xFF8E8E93),
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
 
         // Support Section
         SectionHeader("Support")

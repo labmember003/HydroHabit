@@ -35,6 +35,10 @@ kotlin {
             api("io.insert-koin:koin-core:3.5.4")
         }
 
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+
         androidMain.dependencies {
             // Android-specific shared code will go here later
         }

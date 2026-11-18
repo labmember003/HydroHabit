@@ -1,5 +1,6 @@
 package com.falcon.hydrohabit.onboarding.screens
 
+import com.falcon.hydrohabit.tracking.formatMl
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -58,7 +59,7 @@ fun OnBoardingWaterIntakeResultScreen(
             )
             Spacer(modifier = Modifier.height(30.dp))
             Text(
-                text = "We have calculated your water Intake",
+                text = "Here is your daily water goal",
                 style = TextStyle(
                     fontSize = 15.sp,
                     fontFamily = fontFamilyLight,
@@ -71,7 +72,7 @@ fun OnBoardingWaterIntakeResultScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = onWaterIntake,
+                text = onWaterIntake.removeSuffix(" ml").toIntOrNull()?.let { formatMl(it) } ?: onWaterIntake,
                 style = TextStyle(
                     fontSize = 45.sp,
                     fontFamily = fontFamilyLight,

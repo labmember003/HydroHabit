@@ -113,9 +113,9 @@ fun TextFieldCustom(
             Text(
                 text = onErrorText,
                 style = TextStyle(
-                    fontSize = 10.sp,
+                    fontSize = 13.sp,
                     fontFamily = fontFamilyLight,
-                    fontWeight = FontWeight(200),
+                    fontWeight = FontWeight(400),
                     color = textFieldErrorColor,
                     textAlign = TextAlign.Center,
                 ),

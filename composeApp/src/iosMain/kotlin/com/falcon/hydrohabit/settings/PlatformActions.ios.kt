@@ -8,12 +8,12 @@ import platform.UIKit.UIApplication
 private const val TAG = "PlatformActions.ios"
 
 private const val BUG_REPORT_EMAIL = "falcontechlab@gmail.com"
-// Percent-encoded so NSURL.URLWithString stays valid on iOS 15 (raw spaces make it return nil).
-private const val BUG_REPORT_SUBJECT = "HydroHabit%20-%20Bug%20Report"
+private const val BUG_REPORT_SUBJECT = "Droply - Bug Report"
 
 private fun openMailScreen(emailId: String, titleMessage: String?) {
+    // Percent-encode spaces so NSURL.URLWithString stays valid (raw spaces make it return nil).
     val mailtoUrlString = if (titleMessage != null) {
-        "mailto:$emailId?subject=$titleMessage"
+        "mailto:$emailId?subject=${titleMessage.replace(" ", "%20")}"
     } else {
         "mailto:$emailId"
     }

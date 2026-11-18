@@ -30,6 +30,8 @@ data class AppPreferences(
     val weightUnit: String = "KG",
     val activityLevel: Int = WaterIntakeCalculator.ACTIVITY_MODERATE,
     val gender: String = Gender.UNSPECIFIED.name,
+    // iOS: also save every logged drink to Apple Health (off until the user turns it on).
+    val healthSyncEnabled: Boolean = false,
 ) {
     val userGender: Gender get() = Gender.fromName(gender)
 }

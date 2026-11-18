@@ -8,11 +8,11 @@ package com.falcon.hydrohabit.features.homescreen.usecase
  * @return a motivational message string
  */
 fun getStreakMessage(waterPercent: Int): String {
-    return when (waterPercent) {
-        in 0..30 -> "Keep Going, You are doing Great"
-        in 30..50 -> "You are half way through, keep it up"
-        in 80..95 -> "You are almost there, keep it going "
-        in 95..100 -> "Amazing"
-        else -> ""
+    return when {
+        waterPercent <= 0 -> "Log your first glass to get started"
+        waterPercent < 50 -> "Good start, keep sipping"
+        waterPercent < 80 -> "Halfway there, keep it up"
+        waterPercent < 100 -> "Almost there, keep going"
+        else -> "Goal reached. Amazing!"
     }
 }

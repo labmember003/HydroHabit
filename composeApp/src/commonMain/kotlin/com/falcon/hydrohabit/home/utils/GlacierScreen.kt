@@ -1,5 +1,7 @@
 package com.falcon.hydrohabit.home.utils
 
+import com.falcon.hydrohabit.tracking.formatMl
+import com.falcon.hydrohabit.tracking.groupThousands
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -64,12 +66,12 @@ fun GlacierScreen(
         ) {
             Image(
                 painter = painterResource(Res.drawable.water_svg),
-                contentDescription = "weekly summary",
+                contentDescription = null,
                 modifier = Modifier.size(22.dp, 14.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Target : ${onTotalWaterTrackingResourceAmount} ml",
+                text = "${groupThousands(onWaterTrackingResourceAmount)} of ${formatMl(onTotalWaterTrackingResourceAmount)}",
                 modifier = Modifier,
                 style = TextStyle(
                     fontSize = 20.sp,

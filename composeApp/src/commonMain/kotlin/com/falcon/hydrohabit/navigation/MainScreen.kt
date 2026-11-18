@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.Notifications
@@ -26,6 +27,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,7 +51,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.falcon.hydrohabit.alarm.AlarmSchedulerContract
+import com.falcon.hydrohabit.features.history.source.IntakeLogRepository
+import com.falcon.hydrohabit.features.history.usecase.HistoryStats
+import com.falcon.hydrohabit.features.homescreen.usecase.currentTimeInfo
+import kotlinx.datetime.LocalDate
+import com.falcon.hydrohabit.history.HistoryScreenHost
 import com.falcon.hydrohabit.home.HomeScreenHost
+import com.falcon.hydrohabit.tracking.HealthSync
+import com.falcon.hydrohabit.tracking.HydrationTracker
+import com.falcon.hydrohabit.ui.DroplySnackbarHost
+import com.falcon.hydrohabit.ui.show
 import com.falcon.hydrohabit.onboarding.components.WeightUnit
 import com.falcon.hydrohabit.settings.SettingsScreen
 import com.falcon.hydrohabit.settings.intervalMinutesMap
@@ -70,6 +81,7 @@ import kotlinx.coroutines.launch
 
 private enum class Screen(val label: String, val icon: ImageVector) {
     Home("Home", Icons.Filled.Home),
+    History("History", Icons.Filled.DateRange),
     Settings("Settings", Icons.Filled.Settings),
 }
 
@@ -78,13 +90,32 @@ fun MainScreen(
     appPrefsRepo: AppPreferencesRepository,
     onboardingRepo: OnboardingRepositoryContract,
     alarmScheduler: AlarmSchedulerContract,
+    tracker: HydrationTracker,
+    intakeLogRepo: IntakeLogRepository,
+    healthSync: HealthSync,
     shouldOpenAddWater: Boolean = false,
     onAddWaterHandled: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val showMessage: (String, String?, (() -> Unit)?) -> Unit = { message, action, onAction ->
+        snackbarHostState.show(scope, message, action, onAction)
+    }
+    var showHealthDeniedDialog by remember { mutableStateOf(false) }
+
+    // Water logged by older versions (before the intake log existed) gets one entry,
+    // so History and the home screen agree.
+    LaunchedEffect(Unit) { tracker.reconcileToday() }
     val appPrefs by appPrefsRepo.cachedPreferences.collectAsState()
     val userSettings by onboardingRepo.getUserSettingsStore()
         .collectAsState(initial = UserSettings())
+
+    // The streak shown on Home: consecutive goal days from the intake log. Users who
+    // upgraded from a version without the log keep their stored count until they log.
+    val intakeLog by intakeLogRepo.log.collectAsState(initial = null)
+    val logStreak = intakeLog?.takeIf { it.entries.isNotEmpty() }?.let { log ->
+        HistoryStats.currentStreak(log, LocalDate.parse(currentTimeInfo().dateString), userSettings.userWaterIntake)
+    }
 
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
@@ -154,6 +185,10 @@ fun MainScreen(
     }
 
     Scaffold(
+        snackbarHost = {
+            // Home has its own scaffold so the snackbar lifts the Add button instead of covering it.
+            if (currentScreen != Screen.Home) DroplySnackbarHost(snackbarHostState)
+        },
         bottomBar = {
             Column {
                 // iOS-style single hairline on top of the tab bar (not a full border box).
@@ -223,8 +258,21 @@ fun MainScreen(
                     HomeScreenHost(
                         onboardingRepo = onboardingRepo,
                         alarmScheduler = alarmScheduler,
+                        tracker = tracker,
+                        notificationsEnabled = notificationsEnabled,
+                        onShowMessage = showMessage,
+                        snackbarHostState = snackbarHostState,
+                        streakOverride = logStreak,
                         shouldOpenAddWater = shouldOpenAddWater,
                         onAddWaterHandled = onAddWaterHandled
+                    )
+                }
+                Screen.History -> {
+                    HistoryScreenHost(
+                        intakeLogRepo = intakeLogRepo,
+                        tracker = tracker,
+                        currentGoalMl = userSettings.userWaterIntake,
+                        onShowMessage = showMessage,
                     )
                 }
                 Screen.Settings -> {
@@ -249,6 +297,22 @@ fun MainScreen(
                             selectedSoundIndex = selectedSoundIndex,
                             customSoundUri = customSoundUri
                         ),
+                        healthProviderName = healthSync.providerName.takeIf { healthSync.isAvailable },
+                        healthSyncEnabled = appPrefs.healthSyncEnabled,
+                        onHealthSyncChange = { enabled ->
+                            scope.launch {
+                                if (!enabled) {
+                                    appPrefsRepo.setHealthSyncEnabled(false)
+                                    showMessage("New drinks won't be saved to ${healthSync.providerName}", null, null)
+                                } else if (healthSync.requestAccess()) {
+                                    appPrefsRepo.setHealthSyncEnabled(true)
+                                    tracker.syncTodayToHealth()
+                                    showMessage("Drinks will be saved to ${healthSync.providerName}", null, null)
+                                } else {
+                                    showHealthDeniedDialog = true
+                                }
+                            }
+                        },
                         heightCm = userSettings.userHeight,
                         weightKg = userSettings.userWeight,
                         gender = appPrefs.userGender,
@@ -355,6 +419,31 @@ fun MainScreen(
                 }
             }
         }
+    }
+
+    if (showHealthDeniedDialog) {
+        AlertDialog(
+            onDismissRequest = { showHealthDeniedDialog = false },
+            containerColor = backgroundColor1,
+            titleContentColor = primaryBlack,
+            textContentColor = primaryBlackLight,
+            title = { Text("Allow Droply in ${healthSync.providerName}") },
+            text = {
+                Text(
+                    "Droply doesn't have permission to save water yet. In the Health app, tap your " +
+                        "profile picture, then Apps, Droply, and turn on Water. Then come back and switch this on again."
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    showHealthDeniedDialog = false
+                    healthSync.openHealthApp()
+                }) { Text("Open Health") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showHealthDeniedDialog = false }) { Text("Not now") }
+            }
+        )
     }
 
     if (showNotificationPermissionDialog) {

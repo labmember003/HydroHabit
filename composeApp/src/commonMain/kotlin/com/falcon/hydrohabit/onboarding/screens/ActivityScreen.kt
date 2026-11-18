@@ -70,7 +70,7 @@ fun OnBoardingActiveScreen(
                 )
                 Spacer(modifier = Modifier.height(30.dp))
                 Text(
-                    text = "Please Select your activity level. This helps us calculate the right amount of water",
+                    text = "Select your activity level. This helps us calculate the right amount of water for you.",
                     style = TextStyle(
                         fontSize = 15.sp,
                         fontFamily = fontFamilyLight,
@@ -128,9 +128,9 @@ fun OnBoardingActiveScreen(
                     Text(
                         text = activityMeasurementData.onErrorText,
                         style = TextStyle(
-                            fontSize = 10.sp,
+                            fontSize = 13.sp,
                             fontFamily = fontFamilyLight,
-                            fontWeight = FontWeight(200),
+                            fontWeight = FontWeight(400),
                             color = textFieldErrorColor,
                             textAlign = TextAlign.Center,
                         ),

@@ -20,6 +20,7 @@ class IosAlarmScheduler : AlarmSchedulerContract {
 
     private val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
     private val idPrefix = "water_reminder_"
+    private val followUpId = "${idPrefix}follow_up"
 
     // Held as a strong reference for the app's lifetime (this scheduler is a Koin
     // singleton). Without a delegate, iOS silently drops any reminder that fires while
@@ -48,6 +49,8 @@ class IosAlarmScheduler : AlarmSchedulerContract {
         }
     }
 
+    // A single one-off nudge (e.g. two hours after the latest drink). It uses one fixed
+    // identifier, so each new drink replaces the previous nudge instead of stacking up.
     override fun schedule(reminder: WaterReminder) {
         val content = UNMutableNotificationContent().apply {
             setTitle("Water Reminder 💧")
@@ -56,6 +59,9 @@ class IosAlarmScheduler : AlarmSchedulerContract {
         }
 
         val dateComponents = NSDateComponents().apply {
+            year = reminder.time.year.toLong()
+            month = reminder.time.monthNumber.toLong()
+            day = reminder.time.dayOfMonth.toLong()
             hour = reminder.time.hour.toLong()
             minute = reminder.time.minute.toLong()
             second = 0
@@ -63,11 +69,11 @@ class IosAlarmScheduler : AlarmSchedulerContract {
 
         val trigger = UNCalendarNotificationTrigger.triggerWithDateMatchingComponents(
             dateComponents = dateComponents,
-            repeats = true
+            repeats = false
         )
 
         val request = UNNotificationRequest.requestWithIdentifier(
-            identifier = "$idPrefix${reminder.hashCode()}",
+            identifier = followUpId,
             content = content,
             trigger = trigger
         )
@@ -76,9 +82,7 @@ class IosAlarmScheduler : AlarmSchedulerContract {
     }
 
     override fun cancel(reminder: WaterReminder) {
-        notificationCenter.removePendingNotificationRequestsWithIdentifiers(
-            listOf("$idPrefix${reminder.hashCode()}")
-        )
+        notificationCenter.removePendingNotificationRequestsWithIdentifiers(listOf(followUpId))
     }
 
     override fun scheduleRepeating(

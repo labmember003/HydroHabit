@@ -26,6 +26,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
@@ -64,6 +65,9 @@ import com.falcon.hydrohabit.features.homescreen.usecase.getGreeting
 import com.falcon.hydrohabit.features.homescreen.usecase.getStreakMessage
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.model.water_reminder.WaterReminder
+import com.falcon.hydrohabit.tracking.HydrationTracker
+import com.falcon.hydrohabit.ui.DroplySnackbarHost
+import com.falcon.hydrohabit.tracking.formatMl
 import hydrohabit.composeapp.generated.resources.Res
 import hydrohabit.composeapp.generated.resources.day1
 import hydrohabit.composeapp.generated.resources.day2
@@ -77,28 +81,31 @@ import org.jetbrains.compose.resources.DrawableResource
 fun HomeScreenHost(
     onboardingRepo: OnboardingRepositoryContract,
     alarmScheduler: AlarmSchedulerContract,
+    tracker: HydrationTracker,
+    notificationsEnabled: Boolean,
+    onShowMessage: (message: String, actionLabel: String?, onAction: (() -> Unit)?) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    /** Consecutive-day streak from the intake log; null falls back to the stored counter. */
+    streakOverride: Int? = null,
     shouldOpenAddWater: Boolean = false,
     onAddWaterHandled: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
 
-    // --- State (mirrors HomeViewModel) ---
+    // --- State: everything below is read from the stores, which HydrationTracker updates ---
     var usedWaterAmount by remember { mutableIntStateOf(0) }
     var totalWaterAmount by remember { mutableIntStateOf(0) }
     var waterPercent by remember { mutableIntStateOf(0) }
     var rewardDialog by remember { mutableStateOf(false) }
     var streakScore by remember { mutableIntStateOf(0) }
-    val streakDays = remember { mutableStateListOf<Int>() }
     val perks = remember { mutableStateListOf<DrawableResource>() }
-    var streakDay by remember { mutableStateOf("") }
-    var waterTime by remember { mutableIntStateOf(24) }
     var onProgress by remember { mutableStateOf("") }
     var onTime by remember { mutableStateOf("") }
     var showBottomBar by remember { mutableStateOf(false) }
     var onWaterAddSheet by remember { mutableStateOf(false) }
 
-    val waterItems = listOf(50, 100, 200, 300, 400, 500)
-    var selectedWaterIndex by remember { mutableIntStateOf(0) }
+    val waterItems = listOf(50, 100, 200, 250, 300, 400, 500)
+    var selectedWaterIndex by remember { mutableIntStateOf(3) }
     val listState = rememberLazyListState()
 
     // --- Greeting ---
@@ -106,52 +113,38 @@ fun HomeScreenHost(
         onTime = getGreeting(currentTimeInfo().hour)
     }
 
-    // --- Collect water amount ---
+    // --- Water amount (resets at the start of a new day) ---
     LaunchedEffect(Unit) {
-        val todayDate = currentTimeInfo().dateString
         onboardingRepo.getWaterAmount().collect { wa ->
-            usedWaterAmount = wa.onUsedWater
-            totalWaterAmount = wa.onTotalWater
-            if (wa.onUsedWater > 0) {
-                waterPercent = calculateWaterPercent(wa.onUsedWater, wa.onTotalWater)
-            }
+            val todayDate = currentTimeInfo().dateString
             if (todayDate != wa.onWaterDay) {
                 usedWaterAmount = 0
+                totalWaterAmount = wa.onTotalWater
                 waterPercent = 0
                 onboardingRepo.updateWaterAmount(0, wa.onTotalWater, todayDate)
-            }
-
-            val reminderMsg = if (wa.onUsedWater > wa.onTotalWater) {
-                wa.onTotalWater.toString()
             } else {
-                wa.onUsedWater.toString()
+                usedWaterAmount = wa.onUsedWater
+                totalWaterAmount = wa.onTotalWater
+                waterPercent = calculateWaterPercent(wa.onUsedWater, wa.onTotalWater)
             }
+        }
+    }
+
+    // A one-off nudge two hours after the latest drink, only if reminders are on.
+    LaunchedEffect(usedWaterAmount, notificationsEnabled) {
+        if (notificationsEnabled && usedWaterAmount in 1 until totalWaterAmount) {
             alarmScheduler.schedule(
-                WaterReminder.inTwoHours("Your water intake for today is $reminderMsg ml")
+                WaterReminder.inTwoHours("You've had $usedWaterAmount of $totalWaterAmount ml today. Time for another glass?")
             )
         }
     }
 
-    // --- Collect streak ---
+    // --- Streak ---
     LaunchedEffect(Unit) {
         onboardingRepo.getStreak().collect { s ->
             streakScore = s.streak
-            if (s.perks.isNotEmpty()) {
-                perks.clear()
-                s.perks.forEach {
-                    if (!perks.contains(perkIdToResource(it))) {
-                        perks.add(perkIdToResource(it))
-                    }
-                }
-            }
-            if (s.waterTime != "") {
-                waterTime = s.waterTime.toIntOrNull() ?: 24
-            }
-            streakDay = s.streakDay
-            if (s.streakDays.isNotEmpty()) {
-                streakDays.clear()
-                streakDays.addAll(s.streakDays)
-            }
+            perks.clear()
+            s.perks.distinct().forEach { perks.add(perkIdToResource(it)) }
         }
     }
 
@@ -168,42 +161,15 @@ fun HomeScreenHost(
         }
     }
 
-    // --- Add water handler ---
+    // --- Add water: log it, celebrate when the goal is reached, offer Undo ---
     fun fillWaterUpdate(waterUpdate: Int) {
-        val now = currentTimeInfo()
-        val dateStr = now.dateString
-        val dayOfMonth = now.dayOfMonth
-
-        if (waterPercent < 100) {
-            waterTime = now.minute
-            usedWaterAmount += waterUpdate
-            waterPercent = calculateWaterPercent(usedWaterAmount, totalWaterAmount)
-        } else if (waterPercent >= 100) {
-            rewardDialog = true
-            if (dateStr != streakDay) {
-                streakScore++
-                streakDays.addAll(streakDays.toList())
-                streakDays.add(dayOfMonth - 1)
-                updatePerks(streakScore, perks)
-                scope.launch {
-                    onboardingRepo.updateStreak(
-                        streak = streakScore,
-                        streakDay = streakDay,
-                        streakDays = streakDays.toList(),
-                        waterTime = waterTime.toString(),
-                        perks = perks.map { resourceToPerkId(it) }
-                    )
-                }
-            }
-            streakDay = dateStr
-        } else {
-            waterPercent = 100
-        }
-
         scope.launch {
-            onboardingRepo.updateWaterAmount(usedWaterAmount, totalWaterAmount, currentTimeInfo().dateString)
+            val change = tracker.addWater(waterUpdate)
+            if (change.reachedGoal) rewardDialog = true
+            onShowMessage("Added ${formatMl(waterUpdate)}", "Undo") {
+                scope.launch { tracker.remove(change.entry.id) }
+            }
         }
-        onProgress = getStreakMessage(waterPercent)
     }
 
     // --- UI ---
@@ -284,6 +250,7 @@ fun HomeScreenHost(
             }
         },
         floatingActionButtonPosition = FabPosition.End,
+        snackbarHost = { DroplySnackbarHost(snackbarHostState) },
     ) { padding ->
         HomeScreen(
             onPad = padding,
@@ -293,7 +260,7 @@ fun HomeScreenHost(
             getReward = { if (it != null) rewardDialog = it },
             onReward = rewardDialog,
             getBottomBar = { showBottomBar = it },
-            onStreak = streakScore.toString(),
+            onStreak = (streakOverride ?: streakScore).toString(),
             onProgress = onProgress,
             streakImages = perks.toList(),
             modifier = Modifier
@@ -540,7 +507,6 @@ fun WaterCarouselSheet(
                 if (selected in items.indices) {
                     getWaterTrackingResourceAmount(items[selected])
                     getWaterAddSheet(false)
-                    getSelected(0)
                 }
             },
             modifier = Modifier
@@ -585,13 +551,4 @@ fun perkIdToResource(id: Int): DrawableResource {
 
 fun resourceToPerkId(res: DrawableResource): Int {
     return perkMap.entries.firstOrNull { it.value == res }?.key ?: 1
-}
-
-private fun updatePerks(streakScore: Int, perks: MutableList<DrawableResource>) {
-    when {
-        streakScore >= 1 -> perks.add(Res.drawable.day1)
-        streakScore >= 7 -> perks.add(Res.drawable.day3)
-        streakScore >= 14 -> perks.add(Res.drawable.day4)
-        streakScore >= 30 -> perks.add(Res.drawable.day2)
-    }
 }

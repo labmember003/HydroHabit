@@ -90,6 +90,10 @@ class AppPreferencesRepository(private val context: Any?) {
         prefsStore.updateData { it.copy(gender = gender.name) }
     }
 
+    suspend fun setHealthSyncEnabled(enabled: Boolean) {
+        prefsStore.updateData { it.copy(healthSyncEnabled = enabled) }
+    }
+
     /** Bulk update (for migration or settings screen) */
     suspend fun update(transform: (AppPreferences) -> AppPreferences) {
         prefsStore.updateData(transform)

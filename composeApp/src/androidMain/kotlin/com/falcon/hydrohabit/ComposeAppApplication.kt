@@ -1,5 +1,8 @@
 package com.falcon.hydrohabit
 
+import com.falcon.hydrohabit.di.appModule
+import com.falcon.hydrohabit.tracking.HealthSync
+import com.falcon.hydrohabit.tracking.NoHealthSync
 import android.app.Application
 import com.falcon.hydrohabit.alarm.AlarmSchedulerContract
 import com.falcon.hydrohabit.alarm.AndroidAlarmScheduler
@@ -17,8 +20,10 @@ class ComposeAppApplication : Application() {
             androidContext(this@ComposeAppApplication)
             modules(
                 sharedModule(this@ComposeAppApplication),
+                appModule(),
                 module {
                     single<AlarmSchedulerContract> { AndroidAlarmScheduler(get()) }
+                    single<HealthSync> { NoHealthSync }
                 }
             )
         }

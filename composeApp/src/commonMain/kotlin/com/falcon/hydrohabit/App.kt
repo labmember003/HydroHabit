@@ -1,5 +1,8 @@
 package com.falcon.hydrohabit
 
+import com.falcon.hydrohabit.features.history.source.IntakeLogRepository
+import com.falcon.hydrohabit.tracking.HealthSync
+import com.falcon.hydrohabit.tracking.HydrationTracker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -53,6 +56,9 @@ fun App(
     appPrefsRepo: AppPreferencesRepository,
     onboardingRepo: OnboardingRepositoryContract,
     alarmScheduler: AlarmSchedulerContract,
+    tracker: HydrationTracker,
+    intakeLogRepo: IntakeLogRepository,
+    healthSync: HealthSync,
     shouldOpenAddWater: Boolean = false,
     onAddWaterHandled: () -> Unit = {}
 ) {
@@ -64,6 +70,9 @@ fun App(
                 appPrefsRepo = appPrefsRepo,
                 onboardingRepo = onboardingRepo,
                 alarmScheduler = alarmScheduler,
+                tracker = tracker,
+                intakeLogRepo = intakeLogRepo,
+                healthSync = healthSync,
                 shouldOpenAddWater = shouldOpenAddWater,
                 onAddWaterHandled = onAddWaterHandled
             )

@@ -4,6 +4,7 @@ import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
 import com.falcon.hydrohabit.features.onboarding.source.SharedOnboardingRepository
 import org.koin.core.module.Module
+import com.falcon.hydrohabit.features.history.source.IntakeLogRepository
 import org.koin.dsl.module
 
 /**
@@ -24,5 +25,7 @@ fun sharedModule(context: Any?): Module = module {
     single<AppPreferencesRepository> {
         AppPreferencesRepository(context = context)
     }
+
+    single { IntakeLogRepository(context = context) }
 }
 

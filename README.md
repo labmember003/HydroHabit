@@ -36,6 +36,9 @@ Welcome to Droply, an open-source water-tracking app developed using Jetpack Com
 
 - **Daily Water Intake Tracking:** Log your daily water consumption easily.
 - **Customizable Goals:** Set personal water intake goals based on your needs.
+- **History:** A monthly calendar heatmap of goal days, a last-7-days chart, current and best streaks, and every drink you logged, which you can delete (with Undo).
+- **Apple Health (iOS):** Optionally save each drink to the Health app as Water.
+- **Siri & Shortcuts (iOS):** "Log water in Droply" and "How much water have I had in Droply".
 - **Progress Ring & Streaks:** Watch an animated water level rise toward your daily goal, and build a streak of successful days.
 - **Achievement Badges:** Unlock 8 milestones, from First Drop to 365-Day Champion.
 - **Reminder Notifications:** Receive reminders to stay hydrated throughout the day.
@@ -67,7 +70,7 @@ Tags containing a hyphen (for example `v1.1.0-beta1`) are published as pre-relea
 
 ## Future Implementation: The Hydration Calendar
 
-> **Status:** Planned — not yet built. The app currently ships with the progress ring, streaks, and achievement badges only; there is **no** calendar or history view today. This section is the design spec for an ambitious history-and-insights feature planned for a future release.
+> **Status:** Partly shipped. The History tab now has the monthly heatmap, a monthly summary, a last-7-days chart and a per-day log with delete/undo. Still planned: longer trend ranges, insights, notes, export and share cards.
 
 The Hydration Calendar turns Droply from a "did I drink today?" app into a "how is my hydration habit trending over months?" app. It is the home for all historical data, insights, and long-term motivation.
 

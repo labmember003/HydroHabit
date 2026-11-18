@@ -13,7 +13,7 @@ actual fun rememberPlatformActions(): PlatformActionsState {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
                 data = "mailto:".toUri()
                 putExtra(Intent.EXTRA_EMAIL, arrayOf("falcontechlab@gmail.com"))
-                putExtra(Intent.EXTRA_SUBJECT, "HydroHabit - Bug Report")
+                putExtra(Intent.EXTRA_SUBJECT, "Droply - Bug Report")
                 putExtra(Intent.EXTRA_TEXT, "Please describe the bug you encountered:\n\n")
             }
             if (intent.resolveActivity(context.packageManager) != null) {
