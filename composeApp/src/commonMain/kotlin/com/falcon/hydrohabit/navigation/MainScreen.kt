@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.falcon.hydrohabit.alarm.AlarmSchedulerContract
+import com.falcon.hydrohabit.ads.BannerAd
 import com.falcon.hydrohabit.features.history.source.IntakeLogRepository
 import com.falcon.hydrohabit.features.history.usecase.HistoryStats
 import com.falcon.hydrohabit.features.homescreen.usecase.currentTimeInfo
@@ -191,6 +192,8 @@ fun MainScreen(
         },
         bottomBar = {
             Column {
+                // Banner sits just above the tab bar on every tab; it takes no space until an ad loads.
+                BannerAd(modifier = Modifier.background(backgroundColor1))
                 // iOS-style single hairline on top of the tab bar (not a full border box).
                 Box(
                     modifier = Modifier

@@ -1,6 +1,6 @@
 # Droply Privacy Policy
 
-_Effective: November 18, 2026_
+_Effective: November 21, 2026_
 
 Droply ("the app") is a water-tracking app published by Falcon Digital for Android and iOS. This policy explains what the app does with your information.
 
@@ -31,9 +31,17 @@ The "Log Water" and "Today's Water" actions run on your device and use the same 
 
 Hydration reminders are scheduled locally on your device. No push-notification service or server is involved.
 
-## Analytics, advertising and tracking
+## Ads (Android app)
 
-The app contains no analytics, advertising or tracking SDKs, and it does not track you across apps or websites.
+The Android app shows a banner ad above the tab bar, served by Google AdMob. To show and measure ads and to prevent fraud, Google's Mobile Ads SDK collects your device's IP address (used to estimate your general location), your Android advertising ID and app set ID, how you interact with ads (such as taps), and diagnostic information about the app's performance. This data goes to Google, not to us, and is encrypted in transit. It never includes your water log or body details. See how Google uses information from apps that use its services: https://policies.google.com/technologies/ads
+
+In the EEA, the UK and Switzerland the app asks for your consent before ads are personalised, using Google's consent form; you can change your choice at any time in Settings → Ad privacy choices. You can reset or delete your advertising ID in your phone's Settings → Privacy → Ads.
+
+The iPhone app has no ads.
+
+## Analytics and tracking
+
+Apart from the ad SDK in the Android app described above, the app contains no analytics or tracking SDKs, and we do not track you across apps or websites.
 
 ## Contacting us
 

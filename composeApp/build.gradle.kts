@@ -55,6 +55,9 @@ kotlin {
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.9.0")
             implementation("io.insert-koin:koin-android:3.5.4-RC1")
+            // 24.8.0 is the newest Ads SDK whose Kotlin metadata (2.1) Kotlin 2.0.21 can read
+            implementation("com.google.android.gms:play-services-ads:24.8.0")
+            implementation("com.google.android.ump:user-messaging-platform:4.0.0")
         }
     }
 }
@@ -81,6 +84,9 @@ android {
         targetSdk = 36
         versionCode = 3
         versionName = "1.1.0"
+        // AdMob (account pub-7683902216769416). Debug builds use Google's test banner so we never click our own ads.
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-7683902216769416~5364157563"
+        resValue("string", "admob_banner_id", "ca-app-pub-7683902216769416/4366982699")
     }
 
     // Release signing is configured from environment variables so the keystore and
@@ -99,6 +105,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            resValue("string", "admob_banner_id", "ca-app-pub-3940256099942544/9214589741")
+        }
         release {
             if (releaseKeystorePath != null) {
                 signingConfig = signingConfigs.getByName("release")

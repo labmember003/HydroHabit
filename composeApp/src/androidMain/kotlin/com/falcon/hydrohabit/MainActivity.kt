@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import com.falcon.hydrohabit.alarm.AlarmSchedulerContract
+import com.falcon.hydrohabit.ads.Ads
 import com.falcon.hydrohabit.alarm.ComposeNotificationService
 import com.falcon.hydrohabit.features.onboarding.source.AppPreferencesRepository
 import com.falcon.hydrohabit.features.onboarding.source.OnboardingRepositoryContract
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
         window.statusBarColor = Color.WHITE
         WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
         handleIntent(intent)
+        Ads.gatherConsent(this)
         setContent {
             Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
                 App(

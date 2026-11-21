@@ -1,5 +1,7 @@
 package com.falcon.hydrohabit.settings
 
+import com.falcon.hydrohabit.ads.rememberAdPrivacyChoices
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -133,6 +135,7 @@ fun SettingsScreen(
     )
 
     val platformActions = rememberPlatformActions()
+    val adPrivacyChoices = rememberAdPrivacyChoices()
     val exactAlarmState = rememberExactAlarmState()
 
     Column(
@@ -386,6 +389,36 @@ fun SettingsScreen(
                     color = Color(0xFF8E8E93),
                 )
             )
+        }
+
+        // Only where the law requires it (EEA/UK): change ad consent later.
+        if (adPrivacyChoices != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { adPrivacyChoices() }
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Ad privacy choices",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight(400),
+                        color = primaryBlack,
+                    )
+                )
+                Text(
+                    text = ">",
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFF8E8E93),
+                    )
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(25.dp))
