@@ -82,8 +82,8 @@ android {
         applicationId = "com.falcon.hydrohabit"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 4
+        versionName = "1.1.1"
         // AdMob (account pub-7683902216769416). Debug builds use Google's test banner so we never click our own ads.
         manifestPlaceholders["admobAppId"] = "ca-app-pub-7683902216769416~5364157563"
         resValue("string", "admob_banner_id", "ca-app-pub-7683902216769416/4366982699")
