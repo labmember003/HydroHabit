@@ -2,6 +2,7 @@ package com.falcon.hydrohabit.ads
 
 import android.app.Activity
 import android.content.Context
+import android.provider.Settings
 import com.google.android.gms.ads.MobileAds
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
@@ -48,6 +49,8 @@ object Ads {
     private fun refresh(context: Context, info: ConsentInformation) {
         _privacyOptionsRequired.value =
             info.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+        // Never request ads on Google's test devices (Play pre-launch report / Firebase Test Lab robots tap things)
+        if (inTestLab(context)) return
         if (info.canRequestAds() && started.compareAndSet(false, true)) {
             val app = context.applicationContext
             CoroutineScope(Dispatchers.IO).launch {
@@ -55,4 +58,7 @@ object Ads {
             }
         }
     }
+
+    private fun inTestLab(context: Context): Boolean =
+        "true" == Settings.System.getString(context.contentResolver, "firebase.test.lab")
 }
