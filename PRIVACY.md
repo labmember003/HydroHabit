@@ -6,7 +6,7 @@ Droply ("the app") is a water-tracking app published by Falcon Digital for Andro
 
 ## The short version
 
-Droply does not collect, transmit, sell or share any personal data. Everything you enter stays on your device.
+Everything you enter in Droply stays on your device; we never receive it. The Android app shows a banner ad from Google AdMob, and Google's ad SDK collects some device data to show ads (see "Ads" below). The iPhone app has no ads.
 
 ## Information you enter
 
